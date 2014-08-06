@@ -44,22 +44,22 @@
             this.lyricC = new System.Windows.Forms.CheckBox();
             this.resizeSize = new System.Windows.Forms.NumericUpDown();
             this.goB = new System.Windows.Forms.Button();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.sts = new System.Windows.Forms.StatusStrip();
             this.tssP = new System.Windows.Forms.ToolStripProgressBar();
             this.tssL = new System.Windows.Forms.ToolStripStatusLabel();
             this.verifyCodeP = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.resizeSize)).BeginInit();
-            this.statusStrip1.SuspendLayout();
+            this.sts.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.verifyCodeP)).BeginInit();
             this.SuspendLayout();
             // 
             // folderL
             // 
             this.folderL.AutoSize = true;
-            this.folderL.Location = new System.Drawing.Point(15, 15);
+            this.folderL.Location = new System.Drawing.Point(9, 13);
             this.folderL.Name = "folderL";
-            this.folderL.Size = new System.Drawing.Size(36, 13);
+            this.folderL.Size = new System.Drawing.Size(41, 12);
             this.folderL.TabIndex = 0;
             this.folderL.Text = "Folder";
             // 
@@ -67,39 +67,35 @@
             // 
             this.folder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.folder.Location = new System.Drawing.Point(56, 12);
+            this.folder.Location = new System.Drawing.Point(56, 11);
             this.folder.Name = "folder";
-            this.folder.Size = new System.Drawing.Size(433, 20);
+            this.folder.Size = new System.Drawing.Size(433, 21);
             this.folder.TabIndex = 1;
-            this.folder.Text = "D:\\Music\\iTunes\\WHITEALBUM2 Original Soundtrack ～closing～ Disc1 - Copy;D:\\Music\\i" +
-    "Tunes\\WHITEALBUM2 Original Soundtrack ～closing～ Disc2 - Copy";
             // 
             // url
             // 
             this.url.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.url.Location = new System.Drawing.Point(56, 39);
+            this.url.Location = new System.Drawing.Point(56, 36);
             this.url.Name = "url";
-            this.url.Size = new System.Drawing.Size(433, 20);
+            this.url.Size = new System.Drawing.Size(433, 21);
             this.url.TabIndex = 2;
-            this.url.Text = "http://www.xiami.com/album/525190?spm=a1z1s.6659513.226669510.12.W7qTkf&from=sear" +
-    "ch_popup_album";
             // 
             // urlL
             // 
             this.urlL.AutoSize = true;
-            this.urlL.Location = new System.Drawing.Point(15, 42);
+            this.urlL.Location = new System.Drawing.Point(9, 39);
             this.urlL.Name = "urlL";
-            this.urlL.Size = new System.Drawing.Size(29, 13);
+            this.urlL.Size = new System.Drawing.Size(23, 12);
             this.urlL.TabIndex = 3;
             this.urlL.Text = "URL";
             // 
             // folderB
             // 
             this.folderB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.folderB.Location = new System.Drawing.Point(495, 10);
+            this.folderB.Location = new System.Drawing.Point(495, 9);
             this.folderB.Name = "folderB";
-            this.folderB.Size = new System.Drawing.Size(75, 23);
+            this.folderB.Size = new System.Drawing.Size(75, 21);
             this.folderB.TabIndex = 4;
             this.folderB.Text = "&Browse...";
             this.folderB.UseVisualStyleBackColor = true;
@@ -109,9 +105,9 @@
             // 
             this.extractC.AutoSize = true;
             this.extractC.Enabled = false;
-            this.extractC.Location = new System.Drawing.Point(56, 69);
+            this.extractC.Location = new System.Drawing.Point(56, 64);
             this.extractC.Name = "extractC";
-            this.extractC.Size = new System.Drawing.Size(59, 17);
+            this.extractC.Size = new System.Drawing.Size(66, 16);
             this.extractC.TabIndex = 6;
             this.extractC.Text = "Extract";
             this.extractC.UseVisualStyleBackColor = true;
@@ -121,9 +117,9 @@
             this.coverC.AutoSize = true;
             this.coverC.Checked = true;
             this.coverC.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.coverC.Location = new System.Drawing.Point(121, 69);
+            this.coverC.Location = new System.Drawing.Point(121, 64);
             this.coverC.Name = "coverC";
-            this.coverC.Size = new System.Drawing.Size(72, 17);
+            this.coverC.Size = new System.Drawing.Size(78, 16);
             this.coverC.TabIndex = 7;
             this.coverC.Text = "Set cover";
             this.coverC.UseVisualStyleBackColor = true;
@@ -134,9 +130,9 @@
             this.Id3C.AutoSize = true;
             this.Id3C.Checked = true;
             this.Id3C.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.Id3C.Location = new System.Drawing.Point(282, 69);
+            this.Id3C.Location = new System.Drawing.Point(282, 64);
             this.Id3C.Name = "Id3C";
-            this.Id3C.Size = new System.Drawing.Size(62, 17);
+            this.Id3C.Size = new System.Drawing.Size(66, 16);
             this.Id3C.TabIndex = 8;
             this.Id3C.Text = "Set ID3";
             this.Id3C.UseVisualStyleBackColor = true;
@@ -144,9 +140,9 @@
             // coverP
             // 
             this.coverP.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.coverP.Location = new System.Drawing.Point(420, 107);
+            this.coverP.Location = new System.Drawing.Point(420, 99);
             this.coverP.Name = "coverP";
-            this.coverP.Size = new System.Drawing.Size(150, 150);
+            this.coverP.Size = new System.Drawing.Size(150, 138);
             this.coverP.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.coverP.TabIndex = 10;
             this.coverP.TabStop = false;
@@ -154,9 +150,9 @@
             // titleL
             // 
             this.titleL.AutoSize = true;
-            this.titleL.Location = new System.Drawing.Point(53, 89);
+            this.titleL.Location = new System.Drawing.Point(53, 82);
             this.titleL.Name = "titleL";
-            this.titleL.Size = new System.Drawing.Size(16, 13);
+            this.titleL.Size = new System.Drawing.Size(23, 12);
             this.titleL.TabIndex = 11;
             this.titleL.Text = "   ";
             // 
@@ -164,9 +160,9 @@
             // 
             this.artiseL.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.artiseL.AutoSize = true;
-            this.artiseL.Location = new System.Drawing.Point(417, 91);
+            this.artiseL.Location = new System.Drawing.Point(417, 84);
             this.artiseL.Name = "artiseL";
-            this.artiseL.Size = new System.Drawing.Size(16, 13);
+            this.artiseL.Size = new System.Drawing.Size(23, 12);
             this.artiseL.TabIndex = 12;
             this.artiseL.Text = "   ";
             // 
@@ -175,12 +171,12 @@
             this.trackT.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackT.Location = new System.Drawing.Point(56, 107);
+            this.trackT.Location = new System.Drawing.Point(56, 99);
             this.trackT.Multiline = true;
             this.trackT.Name = "trackT";
             this.trackT.ReadOnly = true;
             this.trackT.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.trackT.Size = new System.Drawing.Size(358, 150);
+            this.trackT.Size = new System.Drawing.Size(358, 139);
             this.trackT.TabIndex = 13;
             // 
             // lyricC
@@ -188,16 +184,16 @@
             this.lyricC.AutoSize = true;
             this.lyricC.Checked = true;
             this.lyricC.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.lyricC.Location = new System.Drawing.Point(346, 69);
+            this.lyricC.Location = new System.Drawing.Point(346, 64);
             this.lyricC.Name = "lyricC";
-            this.lyricC.Size = new System.Drawing.Size(68, 17);
+            this.lyricC.Size = new System.Drawing.Size(84, 16);
             this.lyricC.TabIndex = 14;
             this.lyricC.Text = "Set lyrics";
             this.lyricC.UseVisualStyleBackColor = true;
             // 
             // resizeSize
             // 
-            this.resizeSize.Location = new System.Drawing.Point(199, 66);
+            this.resizeSize.Location = new System.Drawing.Point(199, 61);
             this.resizeSize.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -209,7 +205,7 @@
             0,
             0});
             this.resizeSize.Name = "resizeSize";
-            this.resizeSize.Size = new System.Drawing.Size(56, 20);
+            this.resizeSize.Size = new System.Drawing.Size(56, 21);
             this.resizeSize.TabIndex = 15;
             this.resizeSize.Value = new decimal(new int[] {
             500,
@@ -220,24 +216,24 @@
             // goB
             // 
             this.goB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goB.Location = new System.Drawing.Point(495, 37);
+            this.goB.Location = new System.Drawing.Point(495, 34);
             this.goB.Name = "goB";
-            this.goB.Size = new System.Drawing.Size(75, 23);
+            this.goB.Size = new System.Drawing.Size(75, 21);
             this.goB.TabIndex = 17;
             this.goB.Text = "&Go";
             this.goB.UseVisualStyleBackColor = true;
             this.goB.Click += new System.EventHandler(this.goB_Click);
             // 
-            // statusStrip1
+            // sts
             // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.sts.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tssP,
             this.tssL});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 273);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(584, 22);
-            this.statusStrip1.TabIndex = 18;
-            this.statusStrip1.Text = "sts";
+            this.sts.Location = new System.Drawing.Point(0, 250);
+            this.sts.Name = "sts";
+            this.sts.Size = new System.Drawing.Size(584, 22);
+            this.sts.TabIndex = 18;
+            this.sts.Text = "sts";
             // 
             // tssP
             // 
@@ -251,19 +247,19 @@
             // 
             // verifyCodeP
             // 
-            this.verifyCodeP.Location = new System.Drawing.Point(470, 65);
+            this.verifyCodeP.Location = new System.Drawing.Point(470, 60);
             this.verifyCodeP.Name = "verifyCodeP";
-            this.verifyCodeP.Size = new System.Drawing.Size(100, 30);
+            this.verifyCodeP.Size = new System.Drawing.Size(100, 28);
             this.verifyCodeP.TabIndex = 19;
             this.verifyCodeP.TabStop = false;
             // 
             // mainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(584, 295);
+            this.ClientSize = new System.Drawing.Size(584, 272);
             this.Controls.Add(this.verifyCodeP);
-            this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.sts);
             this.Controls.Add(this.goB);
             this.Controls.Add(this.resizeSize);
             this.Controls.Add(this.lyricC);
@@ -279,13 +275,13 @@
             this.Controls.Add(this.url);
             this.Controls.Add(this.folder);
             this.Controls.Add(this.folderL);
-            this.MinimumSize = new System.Drawing.Size(600, 300);
+            this.MinimumSize = new System.Drawing.Size(600, 280);
             this.Name = "mainForm";
             this.Text = "Cover Grabber";
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.resizeSize)).EndInit();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
+            this.sts.ResumeLayout(false);
+            this.sts.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.verifyCodeP)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -310,7 +306,7 @@
         private System.Windows.Forms.CheckBox lyricC;
         private System.Windows.Forms.NumericUpDown resizeSize;
         private System.Windows.Forms.Button goB;
-        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.StatusStrip sts;
         private System.Windows.Forms.ToolStripProgressBar tssP;
         private System.Windows.Forms.ToolStripStatusLabel tssL;
         private System.Windows.Forms.PictureBox verifyCodeP;

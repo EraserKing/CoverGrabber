@@ -22,6 +22,12 @@ namespace CoverGrabber
             }
         }
 
+        private void cleanUpStatus()
+        {
+            this.tssP.Value = 0;
+            this.tssL.Text = "";
+        }
+
         private void coverC_CheckedChanged(object sender, EventArgs e)
         {
             this.resizeSize.Enabled = this.coverC.Checked;
@@ -50,7 +56,8 @@ namespace CoverGrabber
 
             if (!this.coverC.Checked && !this.Id3C.Checked && !this.lyricC.Checked)
             {
-                MessageBox.Show("You haven't pick any task.");
+                MessageBox.Show("You haven't pick any task.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.cleanUpStatus();
                 return;
             }
 
@@ -62,7 +69,8 @@ namespace CoverGrabber
             {
                 if (!Directory.Exists(singleFolder))
                 {
-                    MessageBox.Show("Folder " + singleFolder + " doesn't exist.");
+                    MessageBox.Show("Folder " + singleFolder + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.cleanUpStatus();
                     return;
                 }
                 DirectoryInfo directory = new DirectoryInfo(singleFolder);
@@ -77,7 +85,6 @@ namespace CoverGrabber
                     }
                 }
             }
-
             #endregion Check local folder and generate files list
 
             #region Get remote page
@@ -91,7 +98,8 @@ namespace CoverGrabber
             }
             catch (Exception e1)
             {
-                MessageBox.Show("Accessing page " + url + " failed.");
+                MessageBox.Show("Accessing page " + url + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.cleanUpStatus();
                 return;
             }
 
@@ -106,7 +114,8 @@ namespace CoverGrabber
             }
             catch (Exception e1)
             {
-                MessageBox.Show("Parsing track lists from " + url + " failed.");
+                MessageBox.Show("Parsing track lists from " + url + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.cleanUpStatus();
                 return;
             }
 
@@ -119,7 +128,8 @@ namespace CoverGrabber
             localTrackQuantity = fileList.Count;
             if (remoteTrackQuantity != localTrackQuantity)
             {
-                MessageBox.Show("You have " + localTrackQuantity.ToString() + " tracks in local folder(s), but " + remoteTrackQuantity.ToString() + " tracks in remote page.");
+                MessageBox.Show("You have " + localTrackQuantity.ToString() + " tracks in local folder(s), but " + remoteTrackQuantity.ToString() + " tracks in remote page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.cleanUpStatus();
                 return;
             }
 
@@ -138,7 +148,8 @@ namespace CoverGrabber
                 }
                 catch (Exception e1)
                 {
-                    MessageBox.Show("Downloading cover failed.");
+                    MessageBox.Show("Downloading cover failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.cleanUpStatus();
                     return;
                 }
             }
@@ -169,7 +180,8 @@ namespace CoverGrabber
                 }
                 catch (Exception e1)
                 {
-                    MessageBox.Show("Parsing page failed.");
+                    MessageBox.Show("Parsing page failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.cleanUpStatus();
                     return;
                 }
             }
@@ -229,7 +241,8 @@ namespace CoverGrabber
                             }
                             catch (Exception e2)
                             {
-                                MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1).ToString() + " failed.");
+                                MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1).ToString() + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                this.cleanUpStatus();
                                 return;
                             }
                         }
@@ -239,7 +252,8 @@ namespace CoverGrabber
                 }
                 catch (Exception e1)
                 {
-                    MessageBox.Show("Downloading lyrics from page failed.");
+                    MessageBox.Show("Downloading lyrics from page failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.cleanUpStatus();
                     return;
                 }
             }
