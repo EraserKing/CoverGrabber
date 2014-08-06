@@ -18,7 +18,27 @@ namespace CoverGrabber
         {
             if (this.fbd.ShowDialog() == DialogResult.OK)
             {
-                this.folder.Text = this.fbd.SelectedPath;
+                if (this.folder.Text != "")
+                {
+                    DialogResult dr = MessageBox.Show("Do you want to replace the folder text box, or append it to the list?\nYes: Replace\nNo: Append to the list", "Question", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    switch (dr)
+                    {
+                        case DialogResult.Yes:
+                            {
+                                this.folder.Text = this.fbd.SelectedPath;
+                                break;
+                            }
+                        case DialogResult.No:
+                            {
+                                this.folder.Text = (this.folder.Text == "" ? "" : this.folder.Text + "; ") + this.fbd.SelectedPath;
+                                break;
+                            }
+                    }
+                }
+                else
+                {
+                    this.folder.Text = this.fbd.SelectedPath;
+                }
             }
         }
 
@@ -35,7 +55,7 @@ namespace CoverGrabber
 
         private void goB_Click(object sender, EventArgs e)
         {
-            HtmlAgilityPack.HtmlDocument htmlPageContent;
+            HtmlAgilityPack.HtmlDocument albumPage;
 
             string albumArtistName = "";
             string albumTitle = "";
@@ -54,14 +74,17 @@ namespace CoverGrabber
             int currentTrackIndex = 0;
             int currentDiscIndex = 0;
 
+            #region Preparion work
+            this.cleanUpStatus();
             if (!this.coverC.Checked && !this.Id3C.Checked && !this.lyricC.Checked)
             {
                 MessageBox.Show("You haven't pick any task.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.cleanUpStatus();
                 return;
             }
+            #endregion Preparation work
 
             #region Check local folder and generate files list
+
             this.tssP.Value = 0;
             this.tssL.Text = "Getting information for local tracks...";
             string[] folderLists = this.folder.Text.Split(";".ToCharArray());
@@ -92,17 +115,16 @@ namespace CoverGrabber
             this.tssL.Text = "Getting remote page information...";
             try
             {
-                string htmlContent = Utility.downloadPage(this.url.Text);
-                htmlPageContent = new HtmlAgilityPack.HtmlDocument();
-                htmlPageContent.LoadHtml(htmlContent);
+                string htmlContent = Utility.DownloadPage(this.url.Text);
+                albumPage = new HtmlAgilityPack.HtmlDocument();
+                albumPage.LoadHtml(htmlContent);
             }
             catch (Exception e1)
             {
-                MessageBox.Show("Accessing page " + url + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Accessing album page " + url.Text + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.cleanUpStatus();
                 return;
             }
-
             #endregion Get remote page
 
             #region Generate track lists
@@ -110,28 +132,29 @@ namespace CoverGrabber
             this.tssL.Text = "Getting tracks list...";
             try
             {
-                trackNamesByDiscs = Utility.parseTrackList(htmlPageContent);
+                trackNamesByDiscs = Utility.ParseTrackList(albumPage);
             }
             catch (Exception e1)
             {
-                MessageBox.Show("Parsing track lists from " + url + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Parsing track lists from " + url.Text + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.cleanUpStatus();
                 return;
             }
-
             #endregion Generate track lists
 
-            foreach (ArrayList remoteTrackList in trackNamesByDiscs)
+            #region Compare if quantity tracks in local and on page equal
+            foreach (ArrayList trackNamesInDisc in trackNamesByDiscs)
             {
-                remoteTrackQuantity += remoteTrackList.Count;
+                remoteTrackQuantity += trackNamesInDisc.Count;
             }
             localTrackQuantity = fileList.Count;
             if (remoteTrackQuantity != localTrackQuantity)
             {
-                MessageBox.Show("You have " + localTrackQuantity.ToString() + " tracks in local folder(s), but " + remoteTrackQuantity.ToString() + " tracks in remote page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You have " + localTrackQuantity.ToString() + " tracks in local folder(s), but " + remoteTrackQuantity.ToString() + " tracks in album page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.cleanUpStatus();
                 return;
             }
+            #endregion Compare if quantity tracks in local and on page equal
 
             #region Get cover
             if (this.coverC.Checked)
@@ -140,11 +163,13 @@ namespace CoverGrabber
                 this.tssL.Text = "Getting cover image...";
                 try
                 {
-                    largeTempFile = System.IO.Path.GetTempFileName() + ".jpg";
-                    smallTempFile = System.IO.Path.GetTempFileName() + ".jpg";
-                    Utility.downloadFile(Utility.parseCoverAddress(htmlPageContent), largeTempFile);
-                    Utility.resizeImage(largeTempFile, smallTempFile, (int)this.resizeSize.Value);
+                    string remoteCoverUrl = Utility.ParseCoverAddress(albumPage);
+                    largeTempFile = System.IO.Path.GetTempPath() + System.IO.Path.GetFileName(remoteCoverUrl) + ".jpg";
+                    smallTempFile = System.IO.Path.GetTempPath() + System.IO.Path.GetFileName(remoteCoverUrl) + "s.jpg";
+                    Utility.DownloadFile(remoteCoverUrl, largeTempFile);
+                    Utility.ResizeImage(largeTempFile, smallTempFile, (int)this.resizeSize.Value);
                     this.coverP.ImageLocation = smallTempFile;
+                    this.coverP.Refresh();
                 }
                 catch (Exception e1)
                 {
@@ -162,8 +187,9 @@ namespace CoverGrabber
                 this.tssL.Text = "Getting ID3 information...";
                 try
                 {
-                    artistNamesByDiscs = Utility.parseTrackArtistList(htmlPageContent);
                     this.trackT.Clear();
+
+                    artistNamesByDiscs = Utility.ParseTrackArtistList(albumPage);
                     foreach (ArrayList trackList in trackNamesByDiscs)
                     {
                         foreach (string track in trackList)
@@ -171,12 +197,15 @@ namespace CoverGrabber
                             this.trackT.AppendText(track + "\n");
                         }
                     }
-                    albumTitle = Utility.parseTitle(htmlPageContent);
-                    albumArtistName = Utility.parseArtist(htmlPageContent);
-                    albumYear = Utility.parseYear(htmlPageContent);
+                    albumTitle = Utility.parseTitle(albumPage);
+                    albumArtistName = Utility.parseArtist(albumPage);
+                    albumYear = Utility.parseYear(albumPage);
 
                     this.titleL.Text = albumTitle;
                     this.artiseL.Text = albumArtistName;
+
+                    this.titleL.Refresh();
+                    this.artiseL.Refresh();
                 }
                 catch (Exception e1)
                 {
@@ -196,45 +225,60 @@ namespace CoverGrabber
                 try
                 {
                     currentTrackIndex = 0;
-                    ArrayList trackUrlListByDiscs = Utility.parseTrackUrlList(htmlPageContent);
+                    ArrayList trackUrlListByDiscs = Utility.ParseTrackUrlList(albumPage);
 
-                    foreach (ArrayList trackUrlList in trackUrlListByDiscs)
+                    foreach (ArrayList trackUrlInDisc in trackUrlListByDiscs)
                     {
                         ArrayList lyricInDisc = new ArrayList();
-                        foreach (string trackUrl in trackUrlList)
+                        foreach (string trackUrl in trackUrlInDisc)
                         {
                             try
                             {
                                 string lyric = "";
                                 this.tssP.Value = 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity);
                                 this.tssL.Text = "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...";
+                                this.sts.Refresh();
                                 if (trackUrl != "")
                                 {
-                                    string htmlContent = Utility.downloadPage("http://www.xiami.com" + trackUrl);
-                                    HtmlAgilityPack.HtmlDocument lyricPageContent = new HtmlAgilityPack.HtmlDocument();
-                                    lyricPageContent.LoadHtml(htmlContent);
+                                    string trackHtmlContent = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
+                                    HtmlAgilityPack.HtmlDocument trackPage = new HtmlAgilityPack.HtmlDocument();
+                                    trackPage.LoadHtml(trackHtmlContent);
 
-                                    // If code exists
-                                    while (lyricPageContent.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]") != null ||
-                                        lyricPageContent.DocumentNode.SelectSingleNode("//p[@id=\"youxianchupin\"]") != null)
+                                    // If code exists, or it's an error page, keep asking verify code, until it's correct, or user entered nothing to break
+                                    while (trackPage.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]") != null ||
+                                        trackPage.DocumentNode.SelectSingleNode("//p[@id=\"youxianchupin\"]") != null)
                                     {
-                                        VerifyCode verifyCode = Utility.getVerifyCode(lyricPageContent);
+                                        VerifyCode verifyCode = Utility.GetVerifyCode(trackPage);
                                         this.verifyCodeP.ImageLocation = verifyCode.localVerifyCode;
+                                        this.verifyCodeP.Refresh();
 
                                         string verifyCodeText = Microsoft.VisualBasic.Interaction.InputBox("Enter the verify code", "Verify Code", "");
 
-                                        verifyCode.code = verifyCodeText;
+                                        if (verifyCodeText == "")
+                                        {
+                                            MessageBox.Show("You aborted.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            this.cleanUpStatus();
+                                            return;
+                                        }
+                                        else
+                                        {
+                                            verifyCode.code = verifyCodeText;
 
-                                        Utility.postVerifyCode(verifyCode);
+                                            Utility.PostVerifyCode(verifyCode);
 
-                                        htmlContent = Utility.downloadPage("http://www.xiami.com" + trackUrl);
-                                        lyricPageContent = new HtmlAgilityPack.HtmlDocument();
-                                        lyricPageContent.LoadHtml(htmlContent);
+                                            // After posting, reload track page and see if everything goes fine
+                                            trackHtmlContent = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
+                                            trackPage = new HtmlAgilityPack.HtmlDocument();
+                                            trackPage.LoadHtml(trackHtmlContent);
+                                        }
                                     }
-
-                                    lyric = Utility.parseTrackLyric(lyricPageContent);
-                                    this.trackT.AppendText(lyric);
-                                    System.Threading.Thread.Sleep(1000);
+                                    lyric = Utility.parseTrackLyric(trackPage);
+                                    if (lyric != "")
+                                    {
+                                        this.trackT.AppendText("\n\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
+                                        this.trackT.AppendText(lyric.Split("\n".ToCharArray())[0]); // Just show first line
+                                    }
+                                    System.Threading.Thread.Sleep(500);
                                 }
                                 currentTrackIndex++;
                                 lyricInDisc.Add(lyric);
@@ -252,13 +296,14 @@ namespace CoverGrabber
                 }
                 catch (Exception e1)
                 {
-                    MessageBox.Show("Downloading lyrics from page failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Downloading lyrics failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     this.cleanUpStatus();
                     return;
                 }
             }
             #endregion Get lyrics
 
+            #region Ready to start write file
             this.extractC.Enabled = false;
             this.coverC.Enabled = false;
             this.Id3C.Enabled = false;
@@ -266,11 +311,14 @@ namespace CoverGrabber
             this.lyricC.Enabled = false;
             this.goB.Enabled = false;
             this.folderB.Enabled = false;
+            #endregion Ready to start write file
 
+            #region Write file
             currentDiscIndex = 0;
             currentTrackIndex = 0;
             this.tssP.Value = 90;
             this.tssL.Text = "Writing local files...";
+
             for (int i = 0; i < trackNamesByDiscs.Count; i++)
             {
                 ArrayList tracksInDisc = (ArrayList)trackNamesByDiscs[i];
@@ -290,55 +338,66 @@ namespace CoverGrabber
                 {
                     this.tssP.Value = 90 + (int)(10.0 * currentTrackIndex / localTrackQuantity);
                     this.tssL.Text = "Writing track " + (currentTrackIndex + 1).ToString() + " ...";
+                    this.sts.Refresh();
 
-                    TagLib.File file = TagLib.File.Create((string)fileList[currentTrackIndex]);
-
-                    if (this.Id3C.Checked)
+                    try
                     {
-                        string currentTrackName = (string)tracksInDisc[j];
-                        string currentTrackArtist = (string)trackArtistsInDisc[j];
+                        TagLib.File trackFile = TagLib.File.Create((string)fileList[currentTrackIndex]);
 
-                        if (trackNamesByDiscs.Count == 1)
+                        if (this.Id3C.Checked)
                         {
-                            file.Tag.Album = albumTitle;
+                            string currentTrackName = (string)tracksInDisc[j];
+                            string currentTrackArtist = (string)trackArtistsInDisc[j];
+
+                            trackFile.Tag.Album = albumTitle;
+                            trackFile.Tag.AlbumArtists = albumArtistName.Split(";".ToCharArray());
+
+                            trackFile.Tag.Disc = (uint)(i + 1);
+                            trackFile.Tag.DiscCount = (uint)(trackNamesByDiscs.Count);
+                            trackFile.Tag.Track = (uint)(j + 1);
+                            trackFile.Tag.TrackCount = (uint)(tracksInDisc.Count);
+
+                            if (currentTrackArtist != "")
+                            {
+                                trackFile.Tag.Performers = currentTrackArtist.Split(";".ToCharArray());
+                            }
+                            else
+                            {
+                                trackFile.Tag.Performers = "".Split(";".ToCharArray());
+                            }
+                            trackFile.Tag.Title = currentTrackName;
+                            trackFile.Tag.Year = albumYear;
                         }
-                        else
+
+                        if (this.coverC.Checked)
                         {
-                            file.Tag.Album = albumTitle + " Disc " + (i + 1).ToString();
-                            file.Tag.Disc = (uint)(i + 1);
-                            file.Tag.DiscCount = (uint)(trackNamesByDiscs.Count);
+                            List<Picture> coverImageList = new List<Picture>();
+                            coverImageList.Add(new Picture(smallTempFile));
+                            trackFile.Tag.Pictures = coverImageList.ToArray();
                         }
-                        file.Tag.Track = (uint)(j + 1);
-                        file.Tag.TrackCount = (uint)(tracksInDisc.Count);
-                        file.Tag.AlbumArtists = albumArtistName.Split(new char[] { ';' });
-                        if (currentTrackArtist != "")
+
+                        if (this.lyricC.Checked)
                         {
-                            file.Tag.Performers = currentTrackArtist.Split(new char[] { ';' });
+                            trackFile.Tag.Lyrics = (string)lyricsInDisc[j];
                         }
-                        else
-                        {
-                            file.Tag.Performers = "".Split(new char[] { ';' });
-                        }
-                        file.Tag.Title = currentTrackName;
-                        file.Tag.Year = albumYear;
+
+                        trackFile.Save();
+                        currentTrackIndex++;
                     }
-
-                    if (this.coverC.Checked)
+                    catch (Exception e2)
                     {
-                        List<Picture> pictureList = new List<Picture>();
-                        pictureList.Add(new Picture(smallTempFile));
-                        file.Tag.Pictures = pictureList.ToArray();
+                        MessageBox.Show("Writing information for track " + (currentTrackIndex + 1).ToString() + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        this.cleanUpStatus();
+                        break;
                     }
-
-                    if (this.lyricC.Checked)
-                    {
-                        file.Tag.Lyrics = (string)lyricsInDisc[j];
-                    }
-
-                    file.Save();
-                    currentTrackIndex++;
                 }
             }
+            #endregion Write file
+
+            #region Clean up
+            this.tssP.Value = 100;
+            this.tssL.Text = "Done";
+            this.sts.Refresh();
 
             this.coverC.Enabled = true;
             this.Id3C.Enabled = true;
@@ -346,7 +405,8 @@ namespace CoverGrabber
             this.lyricC.Enabled = true;
             this.goB.Enabled = true;
             this.folderB.Enabled = true;
-            MessageBox.Show("Done.");
+            MessageBox.Show("Done.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            #endregion Clean up
         }
     }
 }

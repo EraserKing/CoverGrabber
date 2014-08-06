@@ -57,9 +57,9 @@
             // folderL
             // 
             this.folderL.AutoSize = true;
-            this.folderL.Location = new System.Drawing.Point(9, 13);
+            this.folderL.Location = new System.Drawing.Point(9, 14);
             this.folderL.Name = "folderL";
-            this.folderL.Size = new System.Drawing.Size(41, 12);
+            this.folderL.Size = new System.Drawing.Size(36, 13);
             this.folderL.TabIndex = 0;
             this.folderL.Text = "Folder";
             // 
@@ -67,35 +67,35 @@
             // 
             this.folder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.folder.Location = new System.Drawing.Point(56, 11);
+            this.folder.Location = new System.Drawing.Point(56, 12);
             this.folder.Name = "folder";
-            this.folder.Size = new System.Drawing.Size(433, 21);
+            this.folder.Size = new System.Drawing.Size(433, 20);
             this.folder.TabIndex = 1;
             // 
             // url
             // 
             this.url.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.url.Location = new System.Drawing.Point(56, 36);
+            this.url.Location = new System.Drawing.Point(56, 39);
             this.url.Name = "url";
-            this.url.Size = new System.Drawing.Size(433, 21);
+            this.url.Size = new System.Drawing.Size(433, 20);
             this.url.TabIndex = 2;
             // 
             // urlL
             // 
             this.urlL.AutoSize = true;
-            this.urlL.Location = new System.Drawing.Point(9, 39);
+            this.urlL.Location = new System.Drawing.Point(9, 42);
             this.urlL.Name = "urlL";
-            this.urlL.Size = new System.Drawing.Size(23, 12);
+            this.urlL.Size = new System.Drawing.Size(29, 13);
             this.urlL.TabIndex = 3;
             this.urlL.Text = "URL";
             // 
             // folderB
             // 
             this.folderB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.folderB.Location = new System.Drawing.Point(495, 9);
+            this.folderB.Location = new System.Drawing.Point(495, 10);
             this.folderB.Name = "folderB";
-            this.folderB.Size = new System.Drawing.Size(75, 21);
+            this.folderB.Size = new System.Drawing.Size(75, 23);
             this.folderB.TabIndex = 4;
             this.folderB.Text = "&Browse...";
             this.folderB.UseVisualStyleBackColor = true;
@@ -105,9 +105,9 @@
             // 
             this.extractC.AutoSize = true;
             this.extractC.Enabled = false;
-            this.extractC.Location = new System.Drawing.Point(56, 64);
+            this.extractC.Location = new System.Drawing.Point(56, 69);
             this.extractC.Name = "extractC";
-            this.extractC.Size = new System.Drawing.Size(66, 16);
+            this.extractC.Size = new System.Drawing.Size(59, 17);
             this.extractC.TabIndex = 6;
             this.extractC.Text = "Extract";
             this.extractC.UseVisualStyleBackColor = true;
@@ -117,9 +117,9 @@
             this.coverC.AutoSize = true;
             this.coverC.Checked = true;
             this.coverC.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.coverC.Location = new System.Drawing.Point(121, 64);
+            this.coverC.Location = new System.Drawing.Point(121, 69);
             this.coverC.Name = "coverC";
-            this.coverC.Size = new System.Drawing.Size(78, 16);
+            this.coverC.Size = new System.Drawing.Size(72, 17);
             this.coverC.TabIndex = 7;
             this.coverC.Text = "Set cover";
             this.coverC.UseVisualStyleBackColor = true;
@@ -130,9 +130,9 @@
             this.Id3C.AutoSize = true;
             this.Id3C.Checked = true;
             this.Id3C.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.Id3C.Location = new System.Drawing.Point(282, 64);
+            this.Id3C.Location = new System.Drawing.Point(282, 69);
             this.Id3C.Name = "Id3C";
-            this.Id3C.Size = new System.Drawing.Size(66, 16);
+            this.Id3C.Size = new System.Drawing.Size(62, 17);
             this.Id3C.TabIndex = 8;
             this.Id3C.Text = "Set ID3";
             this.Id3C.UseVisualStyleBackColor = true;
@@ -140,9 +140,9 @@
             // coverP
             // 
             this.coverP.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.coverP.Location = new System.Drawing.Point(420, 99);
+            this.coverP.Location = new System.Drawing.Point(420, 107);
             this.coverP.Name = "coverP";
-            this.coverP.Size = new System.Drawing.Size(150, 138);
+            this.coverP.Size = new System.Drawing.Size(150, 150);
             this.coverP.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.coverP.TabIndex = 10;
             this.coverP.TabStop = false;
@@ -150,9 +150,9 @@
             // titleL
             // 
             this.titleL.AutoSize = true;
-            this.titleL.Location = new System.Drawing.Point(53, 82);
+            this.titleL.Location = new System.Drawing.Point(53, 89);
             this.titleL.Name = "titleL";
-            this.titleL.Size = new System.Drawing.Size(23, 12);
+            this.titleL.Size = new System.Drawing.Size(16, 13);
             this.titleL.TabIndex = 11;
             this.titleL.Text = "   ";
             // 
@@ -160,9 +160,9 @@
             // 
             this.artiseL.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.artiseL.AutoSize = true;
-            this.artiseL.Location = new System.Drawing.Point(417, 84);
+            this.artiseL.Location = new System.Drawing.Point(417, 91);
             this.artiseL.Name = "artiseL";
-            this.artiseL.Size = new System.Drawing.Size(23, 12);
+            this.artiseL.Size = new System.Drawing.Size(16, 13);
             this.artiseL.TabIndex = 12;
             this.artiseL.Text = "   ";
             // 
@@ -171,12 +171,12 @@
             this.trackT.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackT.Location = new System.Drawing.Point(56, 99);
+            this.trackT.Location = new System.Drawing.Point(56, 107);
             this.trackT.Multiline = true;
             this.trackT.Name = "trackT";
             this.trackT.ReadOnly = true;
             this.trackT.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.trackT.Size = new System.Drawing.Size(358, 139);
+            this.trackT.Size = new System.Drawing.Size(358, 150);
             this.trackT.TabIndex = 13;
             // 
             // lyricC
@@ -184,16 +184,16 @@
             this.lyricC.AutoSize = true;
             this.lyricC.Checked = true;
             this.lyricC.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.lyricC.Location = new System.Drawing.Point(346, 64);
+            this.lyricC.Location = new System.Drawing.Point(346, 69);
             this.lyricC.Name = "lyricC";
-            this.lyricC.Size = new System.Drawing.Size(84, 16);
+            this.lyricC.Size = new System.Drawing.Size(68, 17);
             this.lyricC.TabIndex = 14;
             this.lyricC.Text = "Set lyrics";
             this.lyricC.UseVisualStyleBackColor = true;
             // 
             // resizeSize
             // 
-            this.resizeSize.Location = new System.Drawing.Point(199, 61);
+            this.resizeSize.Location = new System.Drawing.Point(199, 66);
             this.resizeSize.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -205,7 +205,7 @@
             0,
             0});
             this.resizeSize.Name = "resizeSize";
-            this.resizeSize.Size = new System.Drawing.Size(56, 21);
+            this.resizeSize.Size = new System.Drawing.Size(56, 20);
             this.resizeSize.TabIndex = 15;
             this.resizeSize.Value = new decimal(new int[] {
             500,
@@ -216,9 +216,9 @@
             // goB
             // 
             this.goB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goB.Location = new System.Drawing.Point(495, 34);
+            this.goB.Location = new System.Drawing.Point(495, 37);
             this.goB.Name = "goB";
-            this.goB.Size = new System.Drawing.Size(75, 21);
+            this.goB.Size = new System.Drawing.Size(75, 23);
             this.goB.TabIndex = 17;
             this.goB.Text = "&Go";
             this.goB.UseVisualStyleBackColor = true;
@@ -229,35 +229,35 @@
             this.sts.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tssP,
             this.tssL});
-            this.sts.Location = new System.Drawing.Point(0, 250);
+            this.sts.Location = new System.Drawing.Point(0, 272);
             this.sts.Name = "sts";
-            this.sts.Size = new System.Drawing.Size(584, 22);
+            this.sts.Size = new System.Drawing.Size(584, 23);
             this.sts.TabIndex = 18;
             this.sts.Text = "sts";
             // 
             // tssP
             // 
             this.tssP.Name = "tssP";
-            this.tssP.Size = new System.Drawing.Size(200, 16);
+            this.tssP.Size = new System.Drawing.Size(200, 17);
             // 
             // tssL
             // 
             this.tssL.Name = "tssL";
-            this.tssL.Size = new System.Drawing.Size(0, 17);
+            this.tssL.Size = new System.Drawing.Size(0, 18);
             // 
             // verifyCodeP
             // 
-            this.verifyCodeP.Location = new System.Drawing.Point(470, 60);
+            this.verifyCodeP.Location = new System.Drawing.Point(470, 65);
             this.verifyCodeP.Name = "verifyCodeP";
-            this.verifyCodeP.Size = new System.Drawing.Size(100, 28);
+            this.verifyCodeP.Size = new System.Drawing.Size(100, 30);
             this.verifyCodeP.TabIndex = 19;
             this.verifyCodeP.TabStop = false;
             // 
             // mainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(584, 272);
+            this.ClientSize = new System.Drawing.Size(584, 295);
             this.Controls.Add(this.verifyCodeP);
             this.Controls.Add(this.sts);
             this.Controls.Add(this.goB);
@@ -275,7 +275,7 @@
             this.Controls.Add(this.url);
             this.Controls.Add(this.folder);
             this.Controls.Add(this.folderL);
-            this.MinimumSize = new System.Drawing.Size(600, 280);
+            this.MinimumSize = new System.Drawing.Size(600, 300);
             this.Name = "mainForm";
             this.Text = "Cover Grabber";
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).EndInit();
