@@ -344,6 +344,10 @@ namespace CoverGrabber
                     {
                         TagLib.File trackFile = TagLib.File.Create((string)fileList[currentTrackIndex]);
 
+                        //trackFile.RemoveTags(TagTypes.AllTags);
+                        TagLib.Id3v2.Tag.DefaultVersion = 3;
+                        TagLib.Id3v2.Tag.ForceDefaultVersion = true;
+
                         if (this.Id3C.Checked)
                         {
                             string currentTrackName = (string)tracksInDisc[j];

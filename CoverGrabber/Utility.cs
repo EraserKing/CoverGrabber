@@ -214,7 +214,7 @@ namespace CoverGrabber
             {
                 lyric = lyricNode.InnerText.Trim();
             }
-            return (lyric);
+            return (HttpUtility.HtmlDecode(lyric));
         }
 
         /// <summary>
