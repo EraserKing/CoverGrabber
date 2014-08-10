@@ -45,10 +45,10 @@
             this.resizeSize = new System.Windows.Forms.NumericUpDown();
             this.goB = new System.Windows.Forms.Button();
             this.sts = new System.Windows.Forms.StatusStrip();
-            this.tssP = new System.Windows.Forms.ToolStripProgressBar();
             this.tssL = new System.Windows.Forms.ToolStripStatusLabel();
-            this.verifyCodeP = new System.Windows.Forms.PictureBox();
             this.tssDummy = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tssP = new System.Windows.Forms.ToolStripProgressBar();
+            this.verifyCodeP = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.resizeSize)).BeginInit();
             this.sts.SuspendLayout();
@@ -94,7 +94,7 @@
             // folderB
             // 
             this.folderB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.folderB.Location = new System.Drawing.Point(495, 9);
+            this.folderB.Location = new System.Drawing.Point(495, 11);
             this.folderB.Name = "folderB";
             this.folderB.Size = new System.Drawing.Size(75, 21);
             this.folderB.TabIndex = 4;
@@ -217,7 +217,7 @@
             // goB
             // 
             this.goB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goB.Location = new System.Drawing.Point(495, 34);
+            this.goB.Location = new System.Drawing.Point(495, 36);
             this.goB.Name = "goB";
             this.goB.Size = new System.Drawing.Size(75, 21);
             this.goB.TabIndex = 17;
@@ -237,16 +237,22 @@
             this.sts.TabIndex = 18;
             this.sts.Text = "sts";
             // 
+            // tssL
+            // 
+            this.tssL.Name = "tssL";
+            this.tssL.Size = new System.Drawing.Size(0, 17);
+            // 
+            // tssDummy
+            // 
+            this.tssDummy.Name = "tssDummy";
+            this.tssDummy.Size = new System.Drawing.Size(367, 17);
+            this.tssDummy.Spring = true;
+            // 
             // tssP
             // 
             this.tssP.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.tssP.Name = "tssP";
             this.tssP.Size = new System.Drawing.Size(200, 16);
-            // 
-            // tssL
-            // 
-            this.tssL.Name = "tssL";
-            this.tssL.Size = new System.Drawing.Size(0, 17);
             // 
             // verifyCodeP
             // 
@@ -255,12 +261,6 @@
             this.verifyCodeP.Size = new System.Drawing.Size(100, 28);
             this.verifyCodeP.TabIndex = 19;
             this.verifyCodeP.TabStop = false;
-            // 
-            // tssDummy
-            // 
-            this.tssDummy.Name = "tssDummy";
-            this.tssDummy.Size = new System.Drawing.Size(336, 17);
-            this.tssDummy.Spring = true;
             // 
             // mainForm
             // 
