@@ -367,7 +367,7 @@ namespace CoverGrabber
                             }
                             else
                             {
-                                trackFile.Tag.Performers = "".Split(";".ToCharArray());
+                                trackFile.Tag.Performers = albumArtistName.Split(";".ToCharArray());
                             }
                             trackFile.Tag.Title = currentTrackName;
                             trackFile.Tag.Year = albumYear;
