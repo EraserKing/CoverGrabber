@@ -64,26 +64,26 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="Url">URL to download</param>
         /// <param name="FilePath">File path to save</param>
-        /// <returns></returns>
+        /// <returns>Whether download succeeds</returns>
         static public bool DownloadFile(string Url, string FilePath)
         {
             try
             {
-                System.Net.HttpWebRequest Myrq = (System.Net.HttpWebRequest)System.Net.HttpWebRequest.Create(Url);
-                System.Net.HttpWebResponse myrp = (System.Net.HttpWebResponse)Myrq.GetResponse();
-                System.IO.Stream st = myrp.GetResponseStream();
-                System.IO.Stream so = new System.IO.FileStream(FilePath, System.IO.FileMode.Create);
-                byte[] by = new byte[1024];
-                int osize = st.Read(by, 0, (int)by.Length);
-                while (osize > 0)
+                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Url);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream responseStream = response.GetResponseStream();
+                Stream fileStream = new FileStream(FilePath, System.IO.FileMode.Create);
+                byte[] contentBytes = new byte[1024];
+                int remainingSize = responseStream.Read(contentBytes, 0, (int)contentBytes.Length);
+                while (remainingSize > 0)
                 {
-                    so.Write(by, 0, osize);
-                    osize = st.Read(by, 0, (int)by.Length);
+                    fileStream.Write(contentBytes, 0, remainingSize);
+                    remainingSize = responseStream.Read(contentBytes, 0, (int)contentBytes.Length);
                 }
-                so.Close();
-                st.Close();
-                myrp.Close();
-                Myrq.Abort();
+                fileStream.Close();
+                responseStream.Close();
+                response.Close();
+                request.Abort();
                 return true;
             }
             catch (Exception e)
@@ -205,7 +205,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Lyric</returns>
-        static public string parseTrackLyric(HtmlDocument PageDocument)
+        static public string ParseTrackLyric(HtmlDocument PageDocument)
         {
             string lyric = "";
             HtmlNode lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"lrc_main\"]");
@@ -222,7 +222,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Album title</returns>
-        static public string parseTitle(HtmlDocument PageDocument)
+        static public string ParseAlbumTitle(HtmlDocument PageDocument)
         {
             HtmlNode titleNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"title\"]/h1");
             if (titleNode != null)
@@ -245,7 +245,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Album artist</returns>
-        static public string parseArtist(HtmlDocument PageDocument)
+        static public string ParseAlbumArtist(HtmlDocument PageDocument)
         {
             HtmlNode artistNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[1]/td[2]/a");
             if (artistNode != null)
@@ -263,7 +263,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Album year</returns>
-        static public uint parseYear(HtmlDocument PageDocument)
+        static public uint ParseAlbumYear(HtmlDocument PageDocument)
         {
             HtmlNode yearNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[4]/td[2]");
             if (yearNode != null)
@@ -328,14 +328,14 @@ namespace CoverGrabber
             Stream postStream = request.GetRequestStream();
             postStream.Write(postBytes, 0, postBytes.Length);
 
-            Stream objStream;
+            Stream responseStream;
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            objStream = response.GetResponseStream();
-            StreamReader objReader = new StreamReader(objStream, Encoding.UTF8, true);
+            responseStream = response.GetResponseStream();
+            StreamReader responseReader = new StreamReader(responseStream, Encoding.UTF8, true);
 
             cookies.Add(response.Cookies);
 
-            string responseText = objReader.ReadToEnd();
+            string responseText = responseReader.ReadToEnd();
 
             HtmlDocument htmlPageContent = new HtmlAgilityPack.HtmlDocument();
             htmlPageContent.LoadHtml(responseText);

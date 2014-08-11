@@ -197,9 +197,9 @@ namespace CoverGrabber
                             this.trackT.AppendText(track + "\n");
                         }
                     }
-                    albumTitle = Utility.parseTitle(albumPage);
-                    albumArtistName = Utility.parseArtist(albumPage);
-                    albumYear = Utility.parseYear(albumPage);
+                    albumTitle = Utility.ParseAlbumTitle(albumPage);
+                    albumArtistName = Utility.ParseAlbumArtist(albumPage);
+                    albumYear = Utility.ParseAlbumYear(albumPage);
 
                     this.titleL.Text = albumTitle;
                     this.artiseL.Text = albumArtistName;
@@ -272,10 +272,10 @@ namespace CoverGrabber
                                             trackPage.LoadHtml(trackHtmlContent);
                                         }
                                     }
-                                    lyric = Utility.parseTrackLyric(trackPage);
+                                    lyric = Utility.ParseTrackLyric(trackPage);
                                     if (lyric != "")
                                     {
-                                        this.trackT.AppendText("\n\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
+                                        this.trackT.AppendText("\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
                                         this.trackT.AppendText(lyric.Split("\n".ToCharArray())[0]); // Just show first line
                                     }
                                     System.Threading.Thread.Sleep(500);
@@ -344,6 +344,8 @@ namespace CoverGrabber
                     {
                         TagLib.File trackFile = TagLib.File.Create((string)fileList[currentTrackIndex]);
 
+                        trackFile.RemoveTags(TagTypes.Id3v1);
+                        trackFile.RemoveTags(TagTypes.Ape);
                         //trackFile.RemoveTags(TagTypes.AllTags);
                         TagLib.Id3v2.Tag.DefaultVersion = 3;
                         TagLib.Id3v2.Tag.ForceDefaultVersion = true;
