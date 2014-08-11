@@ -40,13 +40,13 @@ namespace CoverGrabber
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
 
             request.Method = "GET";
-            request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            request.Accept = "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
             request.Headers.Set("Accept-Encoding", "deflate");
-            request.Headers.Set("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+            request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
             request.Headers.Set("Cache-Control", "max-age=0");
-            //request.Connection = "keep-alive";
+            request.Referer = Url;
             request.Host = "www.xiami.com";
-            request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
+            request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
             request.CookieContainer = cookies;
 
             Stream objStream;
@@ -56,6 +56,7 @@ namespace CoverGrabber
 
             cookies.Add(response.Cookies);
             string responseText = objReader.ReadToEnd();
+
             return (responseText);
         }
 

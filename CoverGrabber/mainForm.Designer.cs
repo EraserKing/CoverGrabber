@@ -35,7 +35,7 @@
             this.folderB = new System.Windows.Forms.Button();
             this.extractC = new System.Windows.Forms.CheckBox();
             this.coverC = new System.Windows.Forms.CheckBox();
-            this.Id3C = new System.Windows.Forms.CheckBox();
+            this.id3C = new System.Windows.Forms.CheckBox();
             this.coverP = new System.Windows.Forms.PictureBox();
             this.fbd = new System.Windows.Forms.FolderBrowserDialog();
             this.titleL = new System.Windows.Forms.Label();
@@ -49,6 +49,7 @@
             this.tssDummy = new System.Windows.Forms.ToolStripStatusLabel();
             this.tssP = new System.Windows.Forms.ToolStripProgressBar();
             this.verifyCodeP = new System.Windows.Forms.PictureBox();
+            this.bw = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.resizeSize)).BeginInit();
             this.sts.SuspendLayout();
@@ -126,17 +127,17 @@
             this.coverC.UseVisualStyleBackColor = true;
             this.coverC.CheckedChanged += new System.EventHandler(this.coverC_CheckedChanged);
             // 
-            // Id3C
+            // id3C
             // 
-            this.Id3C.AutoSize = true;
-            this.Id3C.Checked = true;
-            this.Id3C.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.Id3C.Location = new System.Drawing.Point(282, 64);
-            this.Id3C.Name = "Id3C";
-            this.Id3C.Size = new System.Drawing.Size(66, 16);
-            this.Id3C.TabIndex = 8;
-            this.Id3C.Text = "Set ID3";
-            this.Id3C.UseVisualStyleBackColor = true;
+            this.id3C.AutoSize = true;
+            this.id3C.Checked = true;
+            this.id3C.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.id3C.Location = new System.Drawing.Point(282, 64);
+            this.id3C.Name = "id3C";
+            this.id3C.Size = new System.Drawing.Size(66, 16);
+            this.id3C.TabIndex = 8;
+            this.id3C.Text = "Set ID3";
+            this.id3C.UseVisualStyleBackColor = true;
             // 
             // coverP
             // 
@@ -262,6 +263,13 @@
             this.verifyCodeP.TabIndex = 19;
             this.verifyCodeP.TabStop = false;
             // 
+            // bw
+            // 
+            this.bw.WorkerReportsProgress = true;
+            this.bw.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_DoWork);
+            this.bw.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bw_ProgressChanged);
+            this.bw.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bw_RunWorkerCompleted);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -276,7 +284,7 @@
             this.Controls.Add(this.artiseL);
             this.Controls.Add(this.titleL);
             this.Controls.Add(this.coverP);
-            this.Controls.Add(this.Id3C);
+            this.Controls.Add(this.id3C);
             this.Controls.Add(this.coverC);
             this.Controls.Add(this.extractC);
             this.Controls.Add(this.folderB);
@@ -306,7 +314,7 @@
         private System.Windows.Forms.Button folderB;
         private System.Windows.Forms.CheckBox extractC;
         private System.Windows.Forms.CheckBox coverC;
-        private System.Windows.Forms.CheckBox Id3C;
+        private System.Windows.Forms.CheckBox id3C;
         private System.Windows.Forms.PictureBox coverP;
         private System.Windows.Forms.FolderBrowserDialog fbd;
         private System.Windows.Forms.Label titleL;
@@ -320,6 +328,7 @@
         private System.Windows.Forms.ToolStripStatusLabel tssL;
         private System.Windows.Forms.PictureBox verifyCodeP;
         private System.Windows.Forms.ToolStripStatusLabel tssDummy;
+        private System.ComponentModel.BackgroundWorker bw;
     }
 }
 
