@@ -43,12 +43,6 @@ namespace CoverGrabber
             }
         }
 
-        private void cleanUpStatus()
-        {
-            this.tssP.Value = 0;
-            this.tssL.Text = "";
-        }
-
         private void coverC_CheckedChanged(object sender, EventArgs e)
         {
             this.resizeSize.Enabled = this.coverC.Checked;
@@ -56,14 +50,6 @@ namespace CoverGrabber
 
         private void goB_Click(object sender, EventArgs e)
         {
-            GrabOptions grabOptions = new GrabOptions();
-            grabOptions.localFolder = this.folder.Text;
-            grabOptions.webPageUrl = this.url.Text;
-            grabOptions.needCover = this.coverC.Checked;
-            grabOptions.resizeSize = (int)this.resizeSize.Value;
-            grabOptions.needId3 = this.id3C.Checked;
-            grabOptions.needLyric = this.lyricC.Checked;
-
             this.folder.Enabled = false;
             this.folderB.Enabled = false;
             this.url.Enabled = false;
@@ -72,6 +58,14 @@ namespace CoverGrabber
             this.id3C.Enabled = false;
             this.lyricC.Enabled = false;
             this.goB.Enabled = false;
+
+            GrabOptions grabOptions = new GrabOptions();
+            grabOptions.localFolder = this.folder.Text;
+            grabOptions.webPageUrl = this.url.Text;
+            grabOptions.needCover = this.coverC.Checked;
+            grabOptions.resizeSize = (int)this.resizeSize.Value;
+            grabOptions.needId3 = this.id3C.Checked;
+            grabOptions.needLyric = this.lyricC.Checked;
 
             this.bw.RunWorkerAsync(grabOptions);
         }
@@ -451,7 +445,7 @@ namespace CoverGrabber
                     catch (Exception e2)
                     {
                         MessageBox.Show("Writing information for track " + (currentTrackIndex + 1).ToString() + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        this.cleanUpStatus();
+                        CleanProgress(Bw);
                         break;
                     }
                 }

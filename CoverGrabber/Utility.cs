@@ -37,10 +37,14 @@ namespace CoverGrabber
         /// <returns>The page content as string</returns>
         static public string DownloadPage(string Url)
         {
+        Start:
+
+            bool alreadyHandled403 = false;
+
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
 
             request.Method = "GET";
-            request.Accept = "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            request.Accept = "Accept: text/html";
             request.Headers.Set("Accept-Encoding", "deflate");
             request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
             request.Headers.Set("Cache-Control", "max-age=0");
@@ -49,15 +53,64 @@ namespace CoverGrabber
             request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
             request.CookieContainer = cookies;
 
-            Stream objStream;
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            objStream = response.GetResponseStream();
-            StreamReader objReader = new StreamReader(objStream, Encoding.UTF8, true);
+            WebProxy proxy = new WebProxy("localhost", 8888);
+            request.Proxy = proxy;
 
-            cookies.Add(response.Cookies);
-            string responseText = objReader.ReadToEnd();
+            string responseText = "";
+            try
+            {
+                Stream objStream;
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                objStream = response.GetResponseStream();
+                StreamReader objReader = new StreamReader(objStream, Encoding.UTF8, true);
 
+                cookies.Add(response.Cookies);
+                responseText = objReader.ReadToEnd();
+            }
+            catch (WebException e)
+            {
+                if (alreadyHandled403 == true)
+                {
+                    throw e;
+                }
+                else
+                {
+                    HttpWebResponse hwexception = (HttpWebResponse)e.Response;
+
+                    Stream exceptionStream = hwexception.GetResponseStream();
+                    StreamReader exceptionReader = new StreamReader(exceptionStream, Encoding.UTF8, true);
+                    string exceptionText = exceptionReader.ReadToEnd();
+
+                    switch (hwexception.StatusCode)
+                    {
+                        case (HttpStatusCode.Forbidden):
+                            {
+                                handleXiamiForbidden(exceptionText);
+                                alreadyHandled403 = true;
+                                goto Start;
+                            }
+                    }
+                }
+            }
             return (responseText);
+        }
+
+        static private void handleXiamiForbidden(string exceptionText)
+        {
+            exceptionText = exceptionText.Substring(exceptionText.IndexOf("document.cookie=") + 17);
+            exceptionText = exceptionText.Substring(0, exceptionText.IndexOf("\""));
+            string[] newCookies = exceptionText.Split(";".ToCharArray());
+            
+            foreach(string newCookie in newCookies)
+            {
+                string newCookieName = newCookie.Substring(0, newCookie.IndexOf("="));
+                string newCookieValue = newCookie.Substring(newCookie.IndexOf("=") + 1);
+
+                Cookie tempCookie = new Cookie(newCookieName, newCookieValue);
+                tempCookie.Domain = "www.xiami.com";
+                cookies.Add(tempCookie);
+            }
+
         }
 
         /// <summary>
