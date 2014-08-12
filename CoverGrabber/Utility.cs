@@ -53,9 +53,6 @@ namespace CoverGrabber
             request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
             request.CookieContainer = cookies;
 
-            WebProxy proxy = new WebProxy("localhost", 8888);
-            request.Proxy = proxy;
-
             string responseText = "";
             try
             {
