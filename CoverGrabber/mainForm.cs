@@ -311,33 +311,34 @@ namespace CoverGrabber
                                     HtmlAgilityPack.HtmlDocument trackPage = new HtmlAgilityPack.HtmlDocument();
                                     trackPage.LoadHtml(trackHtmlContent);
 
-                                    // If code exists, or it's an error page, keep asking verify code, until it's correct, or user entered nothing to break
-                                    while (trackPage.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]") != null ||
-                                        trackPage.DocumentNode.SelectSingleNode("//p[@id=\"youxianchupin\"]") != null)
-                                    {
-                                        VerifyCode verifyCode = Utility.GetVerifyCode(trackPage);
-                                        SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", "VERIFY_CODE", verifyCode.localVerifyCode);
+                                    // Commented since I never met verify code since then.
+                                    //// If code exists, or it's an error page, keep asking verify code, until it's correct, or user entered nothing to break
+                                    //while (trackPage.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]") != null ||
+                                    //    trackPage.DocumentNode.SelectSingleNode("//p[@id=\"youxianchupin\"]") != null)
+                                    //{
+                                    //    VerifyCode verifyCode = Utility.GetVerifyCode(trackPage);
+                                    //    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", "VERIFY_CODE", verifyCode.localVerifyCode);
 
-                                        string verifyCodeText = Microsoft.VisualBasic.Interaction.InputBox("Enter the verify code", "Verify Code", "");
+                                    //    string verifyCodeText = Microsoft.VisualBasic.Interaction.InputBox("Enter the verify code", "Verify Code", "");
 
-                                        if (verifyCodeText == "")
-                                        {
-                                            MessageBox.Show("You aborted.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                            CleanProgress(Bw);
-                                            return;
-                                        }
-                                        else
-                                        {
-                                            verifyCode.code = verifyCodeText;
+                                    //    if (verifyCodeText == "")
+                                    //    {
+                                    //        MessageBox.Show("You aborted.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    //        CleanProgress(Bw);
+                                    //        return;
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        verifyCode.code = verifyCodeText;
 
-                                            Utility.PostVerifyCode(verifyCode);
+                                    //        Utility.PostVerifyCode(verifyCode);
 
-                                            // After posting, reload track page and see if everything goes fine
-                                            trackHtmlContent = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
-                                            trackPage = new HtmlAgilityPack.HtmlDocument();
-                                            trackPage.LoadHtml(trackHtmlContent);
-                                        }
-                                    }
+                                    //        // After posting, reload track page and see if everything goes fine
+                                    //        trackHtmlContent = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
+                                    //        trackPage = new HtmlAgilityPack.HtmlDocument();
+                                    //        trackPage.LoadHtml(trackHtmlContent);
+                                    //    }
+                                    //}
                                     lyric = Utility.ParseTrackLyric(trackPage);
                                     if (lyric != "")
                                     {
