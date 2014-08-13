@@ -26,7 +26,7 @@ namespace CoverGrabber
     static class Utility
     {
         /// <summary>
-        /// The cookies which assists verify code (otherwise verify code doesn't work)
+        /// The cookies which assists verify code (otherwise verify code / 403 handler doesn't work)
         /// </summary>
         static private CookieContainer cookies = new CookieContainer();
 
@@ -39,7 +39,7 @@ namespace CoverGrabber
         {
         Start:
 
-            bool alreadyHandled403 = false;
+            bool alreadyHandledXiami403 = false;
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
 
@@ -66,24 +66,27 @@ namespace CoverGrabber
             }
             catch (WebException e)
             {
-                if (alreadyHandled403 == true)
+                // If we already handled 403 page (modify cookies) and the error still occurs, something more weird is happening.
+                if (alreadyHandledXiami403 == true)
                 {
                     throw e;
                 }
                 else
                 {
+                    // The error page is a 403 but with some contents indicating how to modify cookies.
                     HttpWebResponse hwexception = (HttpWebResponse)e.Response;
 
                     Stream exceptionStream = hwexception.GetResponseStream();
                     StreamReader exceptionReader = new StreamReader(exceptionStream, Encoding.UTF8, true);
                     string exceptionText = exceptionReader.ReadToEnd();
 
+                    // If it's 403 Forbidden, modify the cookies and try again.
                     switch (hwexception.StatusCode)
                     {
                         case (HttpStatusCode.Forbidden):
                             {
                                 handleXiamiForbidden(exceptionText);
-                                alreadyHandled403 = true;
+                                alreadyHandledXiami403 = true;
                                 goto Start;
                             }
                     }
@@ -92,13 +95,17 @@ namespace CoverGrabber
             return (responseText);
         }
 
+        /// <summary>
+        /// The 403 Forbidden page from Xiami indicates some modification to cookies. Do as suggested.
+        /// </summary>
+        /// <param name="exceptionText">The error message from the page</param>
         static private void handleXiamiForbidden(string exceptionText)
         {
             exceptionText = exceptionText.Substring(exceptionText.IndexOf("document.cookie=") + 17);
             exceptionText = exceptionText.Substring(0, exceptionText.IndexOf("\""));
             string[] newCookies = exceptionText.Split(";".ToCharArray());
-            
-            foreach(string newCookie in newCookies)
+
+            foreach (string newCookie in newCookies)
             {
                 string newCookieName = newCookie.Substring(0, newCookie.IndexOf("="));
                 string newCookieValue = newCookie.Substring(newCookie.IndexOf("=") + 1);
