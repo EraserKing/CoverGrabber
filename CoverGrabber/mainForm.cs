@@ -350,7 +350,7 @@ namespace CoverGrabber
                                 currentTrackIndex++;
                                 lyricInDisc.Add(lyric);
                             }
-                            catch (IndexOutOfRangeException e2)
+                            catch (Exception e2)
                             {
                                 MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1).ToString() + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 CleanProgress(Bw);
@@ -361,7 +361,7 @@ namespace CoverGrabber
                         lyricsByDiscs.Add(lyricInDisc);
                     }
                 }
-                catch (IndexOutOfRangeException e1)
+                catch (Exception e1)
                 {
                     MessageBox.Show("Downloading lyrics failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     CleanProgress(Bw);
