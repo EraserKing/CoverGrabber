@@ -18,7 +18,18 @@ namespace CoverGrabber
     public struct ProgressOptions
     {
         public string statusMessage;
-        public string objectName;
+        public ProgressReportObject objectName;
         public string objectValue;
+    }
+
+    public enum ProgressReportObject
+    {
+        AlbumTitle,
+        AlbumArtist,
+        AlbumCover,
+        Text,
+        TextClear,
+        VerifyCode,
+        Skip
     }
 }

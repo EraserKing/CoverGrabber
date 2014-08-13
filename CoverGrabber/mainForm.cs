@@ -84,32 +84,32 @@ namespace CoverGrabber
 
             switch(progressOptions.objectName)
             {
-                case("ALBUM_TITLE"):
+                case(ProgressReportObject.AlbumTitle):
                     {
                         this.titleL.Text = progressOptions.objectValue;
                         break;
                     }
-                case("ALBUM_ARTIST"):
+                case(ProgressReportObject.AlbumArtist):
                     {
                         this.artiseL.Text = progressOptions.objectValue;
                         break;
                     }
-                case("ALBUM_COVER"):
+                case(ProgressReportObject.AlbumCover):
                     {
                         this.coverP.ImageLocation = progressOptions.objectValue;
                         break;
                     }
-                case("TEXT"):
+                case(ProgressReportObject.Text):
                     {
                         this.trackT.AppendText(progressOptions.objectValue);
                         break;
                     }
-                case("TEXT_CLEAR"):
+                case(ProgressReportObject.TextClear):
                     {
                         this.trackT.Clear();
                         break;
                     }
-                case("VERIFY_CODE"):
+                case(ProgressReportObject.VerifyCode):
                     {
                         this.verifyCodeP.ImageLocation = progressOptions.objectValue;
                         break;
@@ -162,7 +162,7 @@ namespace CoverGrabber
             #endregion Preparation work
 
             #region Check local folder and generate files list
-            SetProgress(Bw, 0, "Getting information for local tracks...", "", "");
+            SetProgress(Bw, 0, "Getting information for local tracks...", ProgressReportObject.Skip, "");
 
             string[] folderLists = options.localFolder.Split(";".ToCharArray());
             foreach (string singleFolder in folderLists)
@@ -188,7 +188,7 @@ namespace CoverGrabber
             #endregion Check local folder and generate files list
 
             #region Get remote page
-            SetProgress(Bw, 10, "Getting remote page information...", "", "");
+            SetProgress(Bw, 10, "Getting remote page information...", ProgressReportObject.Skip, "");
             try
             {
                 string htmlContent = Utility.DownloadPage(options.webPageUrl);
@@ -204,7 +204,7 @@ namespace CoverGrabber
             #endregion Get remote page
 
             #region Generate track lists
-            SetProgress(Bw, 20, "Getting tracks list...", "", "");
+            SetProgress(Bw, 20, "Getting tracks list...", ProgressReportObject.Skip, "");
             try
             {
                 trackNamesByDiscs = Utility.ParseTrackList(albumPage);
@@ -234,7 +234,7 @@ namespace CoverGrabber
             #region Get cover
             if (options.needCover)
             {
-                SetProgress(Bw, 30, "Getting cover image...", "", "");
+                SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.Skip, "");
                 try
                 {
                     string remoteCoverUrl = Utility.ParseCoverAddress(albumPage);
@@ -242,7 +242,7 @@ namespace CoverGrabber
                     smallTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + "s.jpg";
                     Utility.DownloadFile(remoteCoverUrl, largeTempFile);
                     Utility.ResizeImage(largeTempFile, smallTempFile, (int)this.resizeSize.Value);
-                    SetProgress(Bw, 30, "Getting cover image...", "ALBUM_COVER", smallTempFile);
+                    SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.AlbumCover, smallTempFile);
                 }
                 catch (Exception e1)
                 {
@@ -256,25 +256,25 @@ namespace CoverGrabber
             #region Get ID3
             if (options.needId3)
             {
-                SetProgress(Bw, 40, "Getting ID3 information...", "", "");
+                SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.Skip, "");
                 try
                 {
-                    SetProgress(Bw, 40, "Getting ID3 information...", "TEXT_CLEAR", "");
+                    SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.TextClear, "");
 
                     artistNamesByDiscs = Utility.ParseTrackArtistList(albumPage);
                     foreach (ArrayList trackList in trackNamesByDiscs)
                     {
                         foreach (string track in trackList)
                         {
-                            SetProgress(Bw, 40, "Getting ID3 information...", "TEXT", track + "\n");
+                            SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.Text, track + "\n");
                         }
                     }
                     albumTitle = Utility.ParseAlbumTitle(albumPage);
                     albumArtistName = Utility.ParseAlbumArtist(albumPage);
                     albumYear = Utility.ParseAlbumYear(albumPage);
 
-                    SetProgress(Bw, 40, "Getting ID3 information...", "ALBUM_TITLE", albumTitle);
-                    SetProgress(Bw, 40, "Getting ID3 information...", "ALBUM_ARTIST", albumArtistName);
+                    SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumTitle, albumTitle);
+                    SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumArtist, albumArtistName);
                 }
                 catch (Exception e1)
                 {
@@ -288,7 +288,7 @@ namespace CoverGrabber
             #region Get lyrics
             if (options.needLyric)
             {
-                SetProgress(Bw, 50, "Getting lyrics...", "", "");
+                SetProgress(Bw, 50, "Getting lyrics...", ProgressReportObject.Skip, "");
 
                 try
                 {
@@ -303,7 +303,7 @@ namespace CoverGrabber
                             try
                             {
                                 string lyric = "";
-                                SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", "", "");
+                                SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Skip, "");
 
                                 if (trackUrl != "")
                                 {
@@ -342,8 +342,8 @@ namespace CoverGrabber
                                     lyric = Utility.ParseTrackLyric(trackPage);
                                     if (lyric != "")
                                     {
-                                        SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", "TEXT", "\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
-                                        SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", "TEXT", lyric.Split("\n".ToCharArray())[0]);
+                                        SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
+                                        SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, lyric.Split("\n".ToCharArray())[0]);
                                     }
                                     System.Threading.Thread.Sleep(500);
                                 }
@@ -373,7 +373,7 @@ namespace CoverGrabber
             #region Write file
             currentDiscIndex = 0;
             currentTrackIndex = 0;
-            SetProgress(Bw, 90, "Writing local files...", "", "");
+            SetProgress(Bw, 90, "Writing local files...", ProgressReportObject.Skip, "");
 
             for (int i = 0; i < trackNamesByDiscs.Count; i++)
             {
@@ -392,7 +392,7 @@ namespace CoverGrabber
 
                 for (int j = 0; j < tracksInDisc.Count; j++)
                 {
-                    SetProgress(Bw, 90 + (int)(10.0 * currentTrackIndex / localTrackQuantity), "Writing track " + (currentTrackIndex + 1).ToString() + " ...", "", "");
+                    SetProgress(Bw, 90 + (int)(10.0 * currentTrackIndex / localTrackQuantity), "Writing track " + (currentTrackIndex + 1).ToString() + " ...", ProgressReportObject.Skip, "");
 
                     try
                     {
@@ -454,13 +454,13 @@ namespace CoverGrabber
             #endregion Write file
 
             #region Clean up
-            SetProgress(Bw, 100, "Done", "", "");
+            SetProgress(Bw, 100, "Done", ProgressReportObject.Skip, "");
 
             MessageBox.Show("Done.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
             #endregion Clean up
         }
 
-        private static void SetProgress(BackgroundWorker Bw, int Progress, string StatusMessage, string ObjectName, string ObjectValue)
+        private static void SetProgress(BackgroundWorker Bw, int Progress, string StatusMessage, ProgressReportObject ObjectName, string ObjectValue)
         {
             ProgressOptions progressOptions = new ProgressOptions();
             progressOptions.statusMessage = StatusMessage;
@@ -471,7 +471,7 @@ namespace CoverGrabber
 
         private static void CleanProgress(BackgroundWorker Bw)
         {
-            SetProgress(Bw, 0, "", "", "");
+            SetProgress(Bw, 0, "", ProgressReportObject.Skip, "");
         }
     }
 }
