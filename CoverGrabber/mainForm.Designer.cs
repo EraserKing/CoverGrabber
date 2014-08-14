@@ -197,7 +197,7 @@
             // 
             this.resizeSize.Location = new System.Drawing.Point(199, 61);
             this.resizeSize.Maximum = new decimal(new int[] {
-            1000,
+            1500,
             0,
             0,
             0});
@@ -262,6 +262,7 @@
             this.verifyCodeP.Size = new System.Drawing.Size(100, 28);
             this.verifyCodeP.TabIndex = 19;
             this.verifyCodeP.TabStop = false;
+            this.verifyCodeP.Visible = false;
             // 
             // bw
             // 

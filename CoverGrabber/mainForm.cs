@@ -132,7 +132,7 @@ namespace CoverGrabber
         private void doGrab(BackgroundWorker Bw, object Options)
         {
             GrabOptions options = (GrabOptions)Options;
-            HtmlAgilityPack.HtmlDocument albumPage, trackPage;
+            HtmlAgilityPack.HtmlDocument albumPage;
 
             string albumArtistName = "";
             string albumTitle = "";
@@ -143,7 +143,6 @@ namespace CoverGrabber
             List<List<string>> lyricsByDiscs = new List<List<string>>();
             List<string> fileList = new List<string>();
 
-            string largeTempFile = "";
             string smallTempFile = "";
 
             int localTrackQuantity = 0;
@@ -183,7 +182,7 @@ namespace CoverGrabber
             }
             catch (Exception e)
             {
-                MessageBox.Show("Accessing album page " + options.webPageUrl + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Accessing album page " + options.webPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
                 return;
             }
@@ -197,7 +196,7 @@ namespace CoverGrabber
             }
             catch (Exception e)
             {
-                MessageBox.Show("Parsing track lists from " + options.webPageUrl + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Parsing track lists from " + options.webPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
                 return;
             }
@@ -223,19 +222,16 @@ namespace CoverGrabber
                 SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.Skip, "");
                 try
                 {
-                    string remoteCoverUrl = Utility.ParseCoverAddress(albumPage);
-                    largeTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + ".jpg";
-                    smallTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + "s.jpg";
-                    Utility.DownloadFile(remoteCoverUrl, largeTempFile);
-                    Utility.ResizeImage(largeTempFile, smallTempFile, (int)this.resizeSize.Value);
-                    SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.AlbumCover, smallTempFile);
+
+                    smallTempFile = Utility.DownloadCover(albumPage, options.resizeSize);
                 }
-                catch (Exception e1)
+                catch (Exception e)
                 {
-                    MessageBox.Show("Downloading cover failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Downloading cover failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     CleanProgress(Bw);
                     return;
                 }
+                SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.AlbumCover, smallTempFile);
             }
             #endregion Get cover
 
@@ -262,9 +258,9 @@ namespace CoverGrabber
                     SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumTitle, albumTitle);
                     SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumArtist, albumArtistName);
                 }
-                catch (Exception e1)
+                catch (Exception e)
                 {
-                    MessageBox.Show("Parsing page failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Parsing page failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     CleanProgress(Bw);
                     return;
                 }
@@ -276,160 +272,86 @@ namespace CoverGrabber
             {
                 SetProgress(Bw, 50, "Getting lyrics...", ProgressReportObject.Skip, "");
 
-                try
-                {
-                    currentTrackIndex = 0;
-                    List<List<string>> trackUrlListByDiscs = Utility.ParseTrackUrlList(albumPage);
+                currentTrackIndex = 0;
+                List<List<string>> trackUrlListByDiscs = Utility.ParseTrackUrlList(albumPage);
 
-                    foreach (var trackUrlInDisc in trackUrlListByDiscs)
+                foreach (var trackUrlInDisc in trackUrlListByDiscs)
+                {
+                    List<string> lyricInDisc = new List<string>();
+                    foreach (string trackUrl in trackUrlInDisc)
                     {
-                        List<string> lyricInDisc = new List<string>();
-                        foreach (string trackUrl in trackUrlInDisc)
+                        try
                         {
-                            try
-                            {
-                                string lyric = "";
-                                SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Skip, "");
+                            string lyric = "";
+                            SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Skip, "");
 
-                                if (trackUrl != "")
+                            if (trackUrl != "")
+                            {
+                                lyric = Utility.ParseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl));
+                                if (lyric != "")
                                 {
-                                    trackPage = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
-
-                                    // Commented since I never met verify code since then.
-                                    //// If code exists, or it's an error page, keep asking verify code, until it's correct, or user entered nothing to break
-                                    //while (trackPage.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]") != null ||
-                                    //    trackPage.DocumentNode.SelectSingleNode("//p[@id=\"youxianchupin\"]") != null)
-                                    //{
-                                    //    VerifyCode verifyCode = Utility.GetVerifyCode(trackPage);
-                                    //    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", "VERIFY_CODE", verifyCode.localVerifyCode);
-
-                                    //    string verifyCodeText = Microsoft.VisualBasic.Interaction.InputBox("Enter the verify code", "Verify Code", "");
-
-                                    //    if (verifyCodeText == "")
-                                    //    {
-                                    //        MessageBox.Show("You aborted.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    //        CleanProgress(Bw);
-                                    //        return;
-                                    //    }
-                                    //    else
-                                    //    {
-                                    //        verifyCode.code = verifyCodeText;
-
-                                    //        Utility.PostVerifyCode(verifyCode);
-
-                                    //        // After posting, reload track page and see if everything goes fine
-                                    //        trackHtmlContent = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
-                                    //        trackPage = new HtmlAgilityPack.HtmlDocument();
-                                    //        trackPage.LoadHtml(trackHtmlContent);
-                                    //    }
-                                    //}
-                                    lyric = Utility.ParseTrackLyric(trackPage);
-                                    if (lyric != "")
-                                    {
-                                        SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
-                                        SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, lyric.Split("\n".ToCharArray())[0]);
-                                    }
-                                    System.Threading.Thread.Sleep(500);
+                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
+                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, lyric.Split("\n".ToCharArray())[0]);
                                 }
-                                currentTrackIndex++;
-                                lyricInDisc.Add(lyric);
+                                System.Threading.Thread.Sleep(500);
                             }
-                            catch (Exception e2)
-                            {
-                                MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1).ToString() + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                CleanProgress(Bw);
-                                return;
-                            }
+                            currentTrackIndex++;
+                            lyricInDisc.Add(lyric);
                         }
-                        currentDiscIndex++;
-                        lyricsByDiscs.Add(lyricInDisc);
+                        catch (Exception e)
+                        {
+                            MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1).ToString() + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            CleanProgress(Bw);
+                            return;
+                        }
                     }
-                }
-                catch (Exception e1)
-                {
-                    MessageBox.Show("Downloading lyrics failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    CleanProgress(Bw);
-                    return;
+                    currentDiscIndex++;
+                    lyricsByDiscs.Add(lyricInDisc);
                 }
             }
             #endregion Get lyrics
 
             #region Write file
-            currentDiscIndex = 0;
             currentTrackIndex = 0;
             SetProgress(Bw, 90, "Writing local files...", ProgressReportObject.Skip, "");
 
             for (int i = 0; i < trackNamesByDiscs.Count; i++)
             {
-                List<string> tracksInDisc = trackNamesByDiscs[i];
-                List<string> trackArtistsInDisc = new List<string>();
-                List<string> lyricsInDisc = new List<string>();
-
-                if (options.needId3)
-                {
-                    trackArtistsInDisc = artistNamesByDiscs[i];
-                }
-                if (options.needLyric)
-                {
-                    lyricsInDisc = lyricsByDiscs[i];
-                }
-
-                for (int j = 0; j < tracksInDisc.Count; j++)
+                for (int j = 0; j < trackNamesByDiscs[i].Count; j++)
                 {
                     SetProgress(Bw, 90 + (int)(10.0 * currentTrackIndex / localTrackQuantity), "Writing track " + (currentTrackIndex + 1).ToString() + " ...", ProgressReportObject.Skip, "");
 
                     try
                     {
-                        TagLib.File trackFile = TagLib.File.Create((string)fileList[currentTrackIndex]);
-
-                        trackFile.RemoveTags(TagTypes.Id3v1);
-                        trackFile.RemoveTags(TagTypes.Ape);
-                        TagLib.Id3v2.Tag.DefaultVersion = 3;
-                        TagLib.Id3v2.Tag.ForceDefaultVersion = true;
+                        Id3 id3 = new Id3();
 
                         if (options.needId3)
                         {
-                            string currentTrackName = (string)tracksInDisc[j];
-                            string currentTrackArtist = (string)trackArtistsInDisc[j];
-
-                            trackFile.Tag.Album = albumTitle;
-                            trackFile.Tag.AlbumArtists = albumArtistName.Split(";".ToCharArray());
-
-                            trackFile.Tag.Disc = (uint)(i + 1);
-                            trackFile.Tag.DiscCount = (uint)(trackNamesByDiscs.Count);
-                            trackFile.Tag.Track = (uint)(j + 1);
-                            trackFile.Tag.TrackCount = (uint)(tracksInDisc.Count);
-
-                            if (currentTrackArtist != "")
-                            {
-                                trackFile.Tag.Performers = currentTrackArtist.Split(";".ToCharArray());
-                            }
-                            else
-                            {
-                                trackFile.Tag.Performers = albumArtistName.Split(";".ToCharArray());
-                            }
-                            trackFile.Tag.Title = currentTrackName;
-                            trackFile.Tag.Year = albumYear;
+                            id3.AlbumTitle = albumTitle;
+                            id3.AlbumArtists = albumArtistName.Split(";".ToCharArray());
+                            id3.TrackName = trackNamesByDiscs[i][j];
+                            id3.Disc = (uint)(i + 1);
+                            id3.DiscCount = (uint)(trackNamesByDiscs.Count);
+                            id3.Track = (uint)(j + 1);
+                            id3.TrackCount = (uint)(trackNamesByDiscs[i].Count);
+                            id3.Performers = (artistNamesByDiscs[i][j] != "" ? artistNamesByDiscs[i][j] : albumArtistName).Split(";".ToCharArray());
+                            id3.Year = albumYear;
                         }
-
                         if (options.needCover)
                         {
-                            List<Picture> coverImageList = new List<Picture>();
-                            coverImageList.Add(new Picture(smallTempFile));
-                            trackFile.Tag.Pictures = coverImageList.ToArray();
+                            id3.CoverImageList = new List<Picture>();
+                            id3.CoverImageList.Add(new Picture(smallTempFile));
                         }
-
                         if (options.needLyric)
                         {
-                            trackFile.Tag.Lyrics = (string)lyricsInDisc[j];
+                            id3.Lyrics = lyricsByDiscs[i][j];
                         }
-
-                        trackFile.Save();
+                        Utility.WriteFile(fileList[currentTrackIndex], id3, options);
                         currentTrackIndex++;
                     }
-                    catch (Exception e2)
+                    catch (Exception e)
                     {
-                        MessageBox.Show("Writing information for track " + (currentTrackIndex + 1).ToString() + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Writing information for track " + (currentTrackIndex + 1).ToString() + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         CleanProgress(Bw);
                         break;
                     }

@@ -127,6 +127,10 @@ namespace CoverGrabber
         /// <param name="FilePath">File path to save</param>
         static public void DownloadFile(string Url, string FilePath)
         {
+            if (File.Exists(FilePath))
+            {
+                File.Delete(FilePath);
+            }
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Url);
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream responseStream = response.GetResponseStream();
@@ -406,6 +410,11 @@ namespace CoverGrabber
             int newWidth;
             Image largeImage = new Bitmap(SourceFilePath);
 
+            if (File.Exists(DestFilePath))
+            {
+                File.Delete(DestFilePath);
+            }
+
             /* If the new size is smaller than the original size, resize it
              * Otherwise directly copy to create duplication
              * */
@@ -435,11 +444,115 @@ namespace CoverGrabber
                 templateGraphics.Clear(Color.White);
                 templateGraphics.DrawImage(largeImage, new Rectangle(0, 0, newWidth, newHeight), new Rectangle(0, 0, largeImage.Width, largeImage.Height), GraphicsUnit.Pixel);
                 templateImage.Save(DestFilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                templateGraphics.Dispose();
+                templateImage.Dispose();
             }
             else
             {
                 File.Copy(SourceFilePath, DestFilePath);
             }
+            largeImage.Dispose();
         }
+
+        /// <summary>
+        /// Download, save and resize cover image
+        /// </summary>
+        /// <param name="AlbumPage">Album page (which contains cover)</param>
+        /// <param name="ResizeSize">The maximum size of width/height after resize (0 for skipping resizing)</param>
+        /// <returns>The file path after resizing</returns>
+        static public string DownloadCover(HtmlDocument AlbumPage, int ResizeSize)
+        {
+            string remoteCoverUrl = Utility.ParseCoverAddress(AlbumPage);
+            string largeTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + ".jpg";
+            string smallTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + "s.jpg";
+            if (File.Exists(largeTempFile))
+            {
+                File.Delete(largeTempFile);
+            }
+            if (File.Exists(smallTempFile))
+            {
+                File.Delete(smallTempFile);
+            }
+            DownloadFile(remoteCoverUrl, largeTempFile);
+            if (ResizeSize != 0)
+            {
+                ResizeImage(largeTempFile, smallTempFile, ResizeSize);
+            }
+            File.Delete(largeTempFile);
+            return (smallTempFile);
+        }
+
+        /// <summary>
+        /// Write ID3 tags for a file
+        /// </summary>
+        /// <param name="FilePath">The file path to write</param>
+        /// <param name="Id3Info">ID3 tags</param>
+        /// <param name="Options">Options (whether need to write info, cover, lyrics)</param>
+        static public void WriteFile(string FilePath, Id3 Id3Info, GrabOptions Options)
+        {
+            TagLib.File trackFile = TagLib.File.Create(FilePath);
+
+            trackFile.RemoveTags(TagLib.TagTypes.Id3v1);
+            trackFile.RemoveTags(TagLib.TagTypes.Ape);
+            TagLib.Id3v2.Tag.DefaultVersion = 3;
+            TagLib.Id3v2.Tag.ForceDefaultVersion = true;
+
+            if (Options.needId3)
+            {
+                trackFile.Tag.Album = Id3Info.AlbumTitle;
+                trackFile.Tag.AlbumArtists = Id3Info.AlbumArtists;
+                trackFile.Tag.Title = Id3Info.TrackName;
+                trackFile.Tag.Performers = Id3Info.Performers;
+                trackFile.Tag.Year = Id3Info.Year;
+                trackFile.Tag.Disc = Id3Info.Disc;
+                trackFile.Tag.DiscCount = Id3Info.DiscCount;
+                trackFile.Tag.Track = Id3Info.Track;
+                trackFile.Tag.TrackCount = Id3Info.TrackCount;
+            }
+
+            if (Options.needCover)
+            {
+                trackFile.Tag.Pictures = Id3Info.CoverImageList.ToArray();
+            }
+
+            if (Options.needLyric)
+            {
+                trackFile.Tag.Lyrics = Id3Info.Lyrics;
+            }
+
+            trackFile.Save();
+        }
+
+        /* Xiami Verify Code 
+        // Commented since I never met verify code since then.
+        //// If code exists, or it's an error page, keep asking verify code, until it's correct, or user entered nothing to break
+        //while (trackPage.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]") != null ||
+        //    trackPage.DocumentNode.SelectSingleNode("//p[@id=\"youxianchupin\"]") != null)
+        //{
+        //    VerifyCode verifyCode = Utility.GetVerifyCode(trackPage);
+        //    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", "VERIFY_CODE", verifyCode.localVerifyCode);
+
+        //    string verifyCodeText = Microsoft.VisualBasic.Interaction.InputBox("Enter the verify code", "Verify Code", "");
+
+        //    if (verifyCodeText == "")
+        //    {
+        //        MessageBox.Show("You aborted.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //        CleanProgress(Bw);
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        verifyCode.code = verifyCodeText;
+
+        //        Utility.PostVerifyCode(verifyCode);
+
+        //        // After posting, reload track page and see if everything goes fine
+        //        trackHtmlContent = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
+        //        trackPage = new HtmlAgilityPack.HtmlDocument();
+        //        trackPage.LoadHtml(trackHtmlContent);
+        //    }
+        //}
+        */
     }
 }

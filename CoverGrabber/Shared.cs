@@ -22,6 +22,22 @@ namespace CoverGrabber
         public string objectValue;
     }
 
+    public struct Id3
+    {
+        public string AlbumTitle;
+        public string[] AlbumArtists;
+        public string TrackName;
+        public string[] TrackArtists;
+        public uint Disc;
+        public uint DiscCount;
+        public uint Track;
+        public uint TrackCount;
+        public string Lyrics;
+        public string[] Performers;
+        public uint Year;
+        public List<TagLib.Picture> CoverImageList;
+    }
+
     public enum ProgressReportObject
     {
         AlbumTitle,
