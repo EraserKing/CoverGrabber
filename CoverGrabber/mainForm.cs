@@ -138,9 +138,9 @@ namespace CoverGrabber
             string albumTitle = "";
             uint albumYear = 0;
 
-            ArrayList trackNamesByDiscs = new ArrayList();
-            ArrayList artistNamesByDiscs = new ArrayList();
-            ArrayList lyricsByDiscs = new ArrayList();
+            List<List<string>> trackNamesByDiscs = new List<List<string>>();
+            List<List<string>> artistNamesByDiscs = new List<List<string>>();
+            List<List<string>> lyricsByDiscs = new List<List<string>>();
             List<string> fileList = new List<string>();
 
             string largeTempFile = "";
@@ -167,7 +167,7 @@ namespace CoverGrabber
             {
                 fileList = GenerateFileList(options.localFolder);
             }
-            catch(DirectoryNotFoundException e)
+            catch (DirectoryNotFoundException e)
             {
                 MessageBox.Show("Folder " + e.Message + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
@@ -204,14 +204,14 @@ namespace CoverGrabber
             #endregion Generate track lists
 
             #region Compare if quantity tracks in local and on page equal
-            foreach (ArrayList trackNamesInDisc in trackNamesByDiscs)
+            foreach (var trackNamesInDisc in trackNamesByDiscs)
             {
                 remoteTrackQuantity += trackNamesInDisc.Count;
             }
             localTrackQuantity = fileList.Count;
             if (remoteTrackQuantity != localTrackQuantity)
             {
-                MessageBox.Show("You have " + localTrackQuantity.ToString() + " tracks in local folder(s), but " + remoteTrackQuantity.ToString() + " tracks in album page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You have " + localTrackQuantity.ToString() + " tracks in local folder(s), but " + remoteTrackQuantity.ToString() + " tracks on album page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
                 return;
             }
@@ -248,7 +248,7 @@ namespace CoverGrabber
                     SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.TextClear, "");
 
                     artistNamesByDiscs = Utility.ParseTrackArtistList(albumPage);
-                    foreach (ArrayList trackList in trackNamesByDiscs)
+                    foreach (var trackList in trackNamesByDiscs)
                     {
                         foreach (string track in trackList)
                         {
@@ -279,11 +279,11 @@ namespace CoverGrabber
                 try
                 {
                     currentTrackIndex = 0;
-                    ArrayList trackUrlListByDiscs = Utility.ParseTrackUrlList(albumPage);
+                    List<List<string>> trackUrlListByDiscs = Utility.ParseTrackUrlList(albumPage);
 
-                    foreach (ArrayList trackUrlInDisc in trackUrlListByDiscs)
+                    foreach (var trackUrlInDisc in trackUrlListByDiscs)
                     {
-                        ArrayList lyricInDisc = new ArrayList();
+                        List<string> lyricInDisc = new List<string>();
                         foreach (string trackUrl in trackUrlInDisc)
                         {
                             try
@@ -361,17 +361,17 @@ namespace CoverGrabber
 
             for (int i = 0; i < trackNamesByDiscs.Count; i++)
             {
-                ArrayList tracksInDisc = (ArrayList)trackNamesByDiscs[i];
-                ArrayList trackArtistsInDisc = new ArrayList();
-                ArrayList lyricsInDisc = new ArrayList();
+                List<string> tracksInDisc = trackNamesByDiscs[i];
+                List<string> trackArtistsInDisc = new List<string>();
+                List<string> lyricsInDisc = new List<string>();
 
                 if (options.needId3)
                 {
-                    trackArtistsInDisc = (ArrayList)artistNamesByDiscs[i];
+                    trackArtistsInDisc = artistNamesByDiscs[i];
                 }
                 if (options.needLyric)
                 {
-                    lyricsInDisc = (ArrayList)lyricsByDiscs[i];
+                    lyricsInDisc = lyricsByDiscs[i];
                 }
 
                 for (int j = 0; j < tracksInDisc.Count; j++)

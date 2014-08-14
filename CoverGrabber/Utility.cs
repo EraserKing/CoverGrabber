@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -166,14 +167,14 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
-        static public ArrayList ParseTrackList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackList(HtmlDocument PageDocument)
         {
             HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
-            ArrayList dictList = new ArrayList();
+            List<List<string>> dictList = new List<List<string>>();
             for (int i = 1; i <= discNodes.Count; i++)
             {
-                ArrayList trackList = new ArrayList();
+                List<string> trackList = new List<string>();
                 string tempTracksXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]/a[1]";
                 HtmlNodeCollection trackNodes = PageDocument.DocumentNode.SelectNodes(tempTracksXpath);
                 for (int j = 0; j < trackNodes.Count; j++)
@@ -191,14 +192,14 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public ArrayList ParseTrackUrlList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument)
         {
             HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
-            ArrayList dictList = new ArrayList();
+            List<List<string>> dictList = new List<List<string>>();
             for (int i = 1; i <= discNodes.Count; i++)
             {
-                ArrayList trackUrlList = new ArrayList();
+                List<string> trackUrlList = new List<string>();
                 string tempTracksXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]/a[1]";
                 HtmlNodeCollection trackUrlNodes = PageDocument.DocumentNode.SelectNodes(tempTracksXpath);
                 for (int j = 0; j < trackUrlNodes.Count; j++)
@@ -216,14 +217,14 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public ArrayList ParseTrackArtistList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument)
         {
             HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
-            ArrayList discList = new ArrayList();
+            List<List<string>> discList = new List<List<string>>();
             for (int i = 1; i <= discNodes.Count; i++)
             {
-                ArrayList trackArtistList = new ArrayList();
+                List<string> trackArtistList = new List<string>();
                 string tempTracksXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]";
                 HtmlNodeCollection trackNodes = PageDocument.DocumentNode.SelectNodes(tempTracksXpath);
                 for (int j = 0; j < trackNodes.Count; j++)
@@ -370,7 +371,6 @@ namespace CoverGrabber
             request.ContentLength = postBytes.Length;
             request.Headers.Set("Accept-Encoding", "deflate");
             request.Headers.Set("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
-            //request.Connection = "keep-alive";
             request.Host = "www.xiami.com";
             request.Referer = VerifyData.referer;
             request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
@@ -400,53 +400,45 @@ namespace CoverGrabber
         /// <param name="DestFilePath">The file after resize</param>
         /// <param name="MaxSize">The max size on width/height</param>
         /// <returns>Whether resize succeeds</returns>
-        static public bool ResizeImage(string SourceFilePath, string DestFilePath, int MaxSize)
+        static public void ResizeImage(string SourceFilePath, string DestFilePath, int MaxSize)
         {
             int newHeight;
             int newWidth;
-            try
+            Image largeImage = new Bitmap(SourceFilePath);
+
+            /* If the new size is smaller than the original size, resize it
+             * Otherwise directly copy to create duplication
+             * */
+            if (largeImage.Width > MaxSize && largeImage.Width > MaxSize)
             {
-                Image largeImage = new Bitmap(SourceFilePath);
-
-                /* If the new size is smaller than the original size, resize it
-                 * Otherwise directly copy to create duplication
-                 * */
-                if (largeImage.Width > MaxSize && largeImage.Width > MaxSize)
+                if (largeImage.Height > largeImage.Width)
                 {
-                    if (largeImage.Height > largeImage.Width)
-                    {
-                        newHeight = MaxSize;
-                        newWidth = (int)(MaxSize * ((double)largeImage.Width / (double)largeImage.Height));
-                    }
-                    else if (largeImage.Height < largeImage.Width)
-                    {
-                        newHeight = (int)(MaxSize * ((double)largeImage.Height / (double)largeImage.Width));
-                        newWidth = MaxSize;
-                    }
-                    else
-                    {
-                        newHeight = MaxSize;
-                        newWidth = MaxSize;
-                    }
-
-                    Image templateImage = new Bitmap(newWidth, newHeight);
-                    Graphics templateGraphics = Graphics.FromImage(templateImage);
-
-                    templateGraphics.InterpolationMode = InterpolationMode.High;
-                    templateGraphics.SmoothingMode = SmoothingMode.HighQuality;
-                    templateGraphics.Clear(Color.White);
-                    templateGraphics.DrawImage(largeImage, new Rectangle(0, 0, newWidth, newHeight), new Rectangle(0, 0, largeImage.Width, largeImage.Height), GraphicsUnit.Pixel);
-                    templateImage.Save(DestFilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    newHeight = MaxSize;
+                    newWidth = (int)(MaxSize * ((double)largeImage.Width / (double)largeImage.Height));
+                }
+                else if (largeImage.Height < largeImage.Width)
+                {
+                    newHeight = (int)(MaxSize * ((double)largeImage.Height / (double)largeImage.Width));
+                    newWidth = MaxSize;
                 }
                 else
                 {
-                    File.Copy(SourceFilePath, DestFilePath);
+                    newHeight = MaxSize;
+                    newWidth = MaxSize;
                 }
-                return (true);
+
+                Image templateImage = new Bitmap(newWidth, newHeight);
+                Graphics templateGraphics = Graphics.FromImage(templateImage);
+
+                templateGraphics.InterpolationMode = InterpolationMode.High;
+                templateGraphics.SmoothingMode = SmoothingMode.HighQuality;
+                templateGraphics.Clear(Color.White);
+                templateGraphics.DrawImage(largeImage, new Rectangle(0, 0, newWidth, newHeight), new Rectangle(0, 0, largeImage.Width, largeImage.Height), GraphicsUnit.Pixel);
+                templateImage.Save(DestFilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
             }
-            catch (Exception e)
+            else
             {
-                return (false);
+                File.Copy(SourceFilePath, DestFilePath);
             }
         }
     }
