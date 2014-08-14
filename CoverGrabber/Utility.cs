@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
-using System.IO;
+﻿using HtmlAgilityPack;
+using System;
 using System.Collections;
-using System.Web;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
-using HtmlAgilityPack;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Web;
 
 namespace CoverGrabber
 {
@@ -35,7 +31,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="Url">URL to download</param>
         /// <returns>The page content as string</returns>
-        static public string DownloadPage(string Url)
+        static public HtmlDocument DownloadPage(string Url)
         {
         Start:
 
@@ -63,28 +59,32 @@ namespace CoverGrabber
 
                 cookies.Add(response.Cookies);
                 responseText = objReader.ReadToEnd();
+
+                HtmlDocument responsePage = new HtmlDocument();
+                responsePage.LoadHtml(responseText);
+                return (responsePage);
             }
             catch (WebException e)
             {
                 // If we already handled 403 page (modify cookies) and the error still occurs, something more weird is happening.
                 if (alreadyHandledXiami403 == true)
                 {
-                    throw e;
+                    throw (e);
                 }
                 else
                 {
                     // The error page is a 403 but with some contents indicating how to modify cookies.
                     HttpWebResponse hwexception = (HttpWebResponse)e.Response;
 
-                    Stream exceptionStream = hwexception.GetResponseStream();
-                    StreamReader exceptionReader = new StreamReader(exceptionStream, Encoding.UTF8, true);
-                    string exceptionText = exceptionReader.ReadToEnd();
-
                     // If it's 403 Forbidden, modify the cookies and try again.
                     switch (hwexception.StatusCode)
                     {
                         case (HttpStatusCode.Forbidden):
                             {
+                                Stream exceptionStream = hwexception.GetResponseStream();
+                                StreamReader exceptionReader = new StreamReader(exceptionStream, Encoding.UTF8, true);
+                                string exceptionText = exceptionReader.ReadToEnd();
+
                                 handleXiamiForbidden(exceptionText);
                                 alreadyHandledXiami403 = true;
                                 goto Start;
@@ -92,7 +92,8 @@ namespace CoverGrabber
                     }
                 }
             }
-            return (responseText);
+            // Actually we should never reach here
+            return (new HtmlDocument());
         }
 
         /// <summary>
@@ -101,6 +102,7 @@ namespace CoverGrabber
         /// <param name="exceptionText">The error message from the page</param>
         static private void handleXiamiForbidden(string exceptionText)
         {
+            // The exception text is like "aaa=xxx;bbb=yyy;ccc=zzz".
             exceptionText = exceptionText.Substring(exceptionText.IndexOf("document.cookie=") + 17);
             exceptionText = exceptionText.Substring(0, exceptionText.IndexOf("\""));
             string[] newCookies = exceptionText.Split(";".ToCharArray());
@@ -122,32 +124,23 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="Url">URL to download</param>
         /// <param name="FilePath">File path to save</param>
-        /// <returns>Whether download succeeds</returns>
-        static public bool DownloadFile(string Url, string FilePath)
+        static public void DownloadFile(string Url, string FilePath)
         {
-            try
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Url);
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream responseStream = response.GetResponseStream();
+            Stream fileStream = new FileStream(FilePath, System.IO.FileMode.Create);
+            byte[] contentBytes = new byte[1024 * 32];
+            int remainingSize = responseStream.Read(contentBytes, 0, (int)contentBytes.Length);
+            while (remainingSize > 0)
             {
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Url);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream responseStream = response.GetResponseStream();
-                Stream fileStream = new FileStream(FilePath, System.IO.FileMode.Create);
-                byte[] contentBytes = new byte[1024];
-                int remainingSize = responseStream.Read(contentBytes, 0, (int)contentBytes.Length);
-                while (remainingSize > 0)
-                {
-                    fileStream.Write(contentBytes, 0, remainingSize);
-                    remainingSize = responseStream.Read(contentBytes, 0, (int)contentBytes.Length);
-                }
-                fileStream.Close();
-                responseStream.Close();
-                response.Close();
-                request.Abort();
-                return true;
+                fileStream.Write(contentBytes, 0, remainingSize);
+                remainingSize = responseStream.Read(contentBytes, 0, (int)contentBytes.Length);
             }
-            catch (Exception e)
-            {
-                return false;
-            }
+            fileStream.Close();
+            responseStream.Close();
+            response.Close();
+            request.Abort();
         }
 
         /// <summary>

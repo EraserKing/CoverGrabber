@@ -82,34 +82,34 @@ namespace CoverGrabber
 
             this.tssL.Text = progressOptions.statusMessage;
 
-            switch(progressOptions.objectName)
+            switch (progressOptions.objectName)
             {
-                case(ProgressReportObject.AlbumTitle):
+                case (ProgressReportObject.AlbumTitle):
                     {
                         this.titleL.Text = progressOptions.objectValue;
                         break;
                     }
-                case(ProgressReportObject.AlbumArtist):
+                case (ProgressReportObject.AlbumArtist):
                     {
                         this.artiseL.Text = progressOptions.objectValue;
                         break;
                     }
-                case(ProgressReportObject.AlbumCover):
+                case (ProgressReportObject.AlbumCover):
                     {
                         this.coverP.ImageLocation = progressOptions.objectValue;
                         break;
                     }
-                case(ProgressReportObject.Text):
+                case (ProgressReportObject.Text):
                     {
                         this.trackT.AppendText(progressOptions.objectValue);
                         break;
                     }
-                case(ProgressReportObject.TextClear):
+                case (ProgressReportObject.TextClear):
                     {
                         this.trackT.Clear();
                         break;
                     }
-                case(ProgressReportObject.VerifyCode):
+                case (ProgressReportObject.VerifyCode):
                     {
                         this.verifyCodeP.ImageLocation = progressOptions.objectValue;
                         break;
@@ -132,7 +132,7 @@ namespace CoverGrabber
         private void doGrab(BackgroundWorker Bw, object Options)
         {
             GrabOptions options = (GrabOptions)Options;
-            HtmlAgilityPack.HtmlDocument albumPage;
+            HtmlAgilityPack.HtmlDocument albumPage, trackPage;
 
             string albumArtistName = "";
             string albumTitle = "";
@@ -141,7 +141,7 @@ namespace CoverGrabber
             ArrayList trackNamesByDiscs = new ArrayList();
             ArrayList artistNamesByDiscs = new ArrayList();
             ArrayList lyricsByDiscs = new ArrayList();
-            ArrayList fileList = new ArrayList();
+            List<string> fileList = new List<string>();
 
             string largeTempFile = "";
             string smallTempFile = "";
@@ -163,27 +163,15 @@ namespace CoverGrabber
 
             #region Check local folder and generate files list
             SetProgress(Bw, 0, "Getting information for local tracks...", ProgressReportObject.Skip, "");
-
-            string[] folderLists = options.localFolder.Split(";".ToCharArray());
-            foreach (string singleFolder in folderLists)
+            try
             {
-                if (!Directory.Exists(singleFolder))
-                {
-                    MessageBox.Show("Folder " + singleFolder + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    CleanProgress(Bw);
-                    return;
-                }
-                DirectoryInfo directory = new DirectoryInfo(singleFolder);
-                {
-                    foreach (FileInfo file in directory.GetFiles("*.m4a"))
-                    {
-                        fileList.Add(file.FullName);
-                    }
-                    foreach (FileInfo file in directory.GetFiles("*.mp3"))
-                    {
-                        fileList.Add(file.FullName);
-                    }
-                }
+                fileList = GenerateFileList(options.localFolder);
+            }
+            catch(DirectoryNotFoundException e)
+            {
+                MessageBox.Show("Folder " + e.Message + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CleanProgress(Bw);
+                return;
             }
             #endregion Check local folder and generate files list
 
@@ -191,11 +179,9 @@ namespace CoverGrabber
             SetProgress(Bw, 10, "Getting remote page information...", ProgressReportObject.Skip, "");
             try
             {
-                string htmlContent = Utility.DownloadPage(options.webPageUrl);
-                albumPage = new HtmlAgilityPack.HtmlDocument();
-                albumPage.LoadHtml(htmlContent);
+                albumPage = Utility.DownloadPage(options.webPageUrl);
             }
-            catch (Exception e1)
+            catch (Exception e)
             {
                 MessageBox.Show("Accessing album page " + options.webPageUrl + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
@@ -209,7 +195,7 @@ namespace CoverGrabber
             {
                 trackNamesByDiscs = Utility.ParseTrackList(albumPage);
             }
-            catch (Exception e1)
+            catch (Exception e)
             {
                 MessageBox.Show("Parsing track lists from " + options.webPageUrl + " failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
@@ -307,9 +293,7 @@ namespace CoverGrabber
 
                                 if (trackUrl != "")
                                 {
-                                    string trackHtmlContent = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
-                                    HtmlAgilityPack.HtmlDocument trackPage = new HtmlAgilityPack.HtmlDocument();
-                                    trackPage.LoadHtml(trackHtmlContent);
+                                    trackPage = Utility.DownloadPage("http://www.xiami.com" + trackUrl);
 
                                     // Commented since I never met verify code since then.
                                     //// If code exists, or it's an error page, keep asking verify code, until it's correct, or user entered nothing to break
@@ -472,6 +456,33 @@ namespace CoverGrabber
         private static void CleanProgress(BackgroundWorker Bw)
         {
             SetProgress(Bw, 0, "", ProgressReportObject.Skip, "");
+        }
+
+        private static List<string> GenerateFileList(string FolderStrings)
+        {
+            List<string> fileList = new List<string>();
+
+            string[] folderLists = FolderStrings.Split(";".ToCharArray());
+            foreach (string singleFolder in folderLists)
+            {
+                if (!Directory.Exists(singleFolder))
+                {
+                    throw (new DirectoryNotFoundException(singleFolder));
+                }
+                DirectoryInfo directory = new DirectoryInfo(singleFolder);
+                {
+                    foreach (FileInfo file in directory.GetFiles("*.m4a"))
+                    {
+                        fileList.Add(file.FullName);
+                    }
+                    foreach (FileInfo file in directory.GetFiles("*.mp3"))
+                    {
+                        fileList.Add(file.FullName);
+                    }
+                }
+
+            }
+            return (fileList);
         }
     }
 }
