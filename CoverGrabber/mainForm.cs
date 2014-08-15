@@ -222,7 +222,6 @@ namespace CoverGrabber
                 SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.Skip, "");
                 try
                 {
-
                     smallTempFile = Utility.DownloadCover(albumPage, options.resizeSize);
                 }
                 catch (Exception e)
