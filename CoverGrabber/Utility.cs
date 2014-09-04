@@ -22,6 +22,15 @@ namespace CoverGrabber
 
     static class Utility
     {
+        public delegate string ParseCoverAddress(HtmlDocument PageDocument);
+        public delegate List<List<string>> ParseTrackList(HtmlDocument PageDocument);
+        public delegate List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument);
+        public delegate List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument);
+        public delegate string ParseTrackLyric(HtmlDocument PageDocument);
+        public delegate string ParseAlbumTitle(HtmlDocument PageDocument);
+        public delegate string ParseAlbumArtist(HtmlDocument PageDocument);
+        public delegate uint ParseAlbumYear(HtmlDocument PageDocument);
+
         /// <summary>
         /// The cookies which assists verify code (otherwise verify code / 403 handler doesn't work)
         /// </summary>
@@ -153,7 +162,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Cover image URL</returns>
-        static public string ParseCoverAddress(HtmlDocument PageDocument)
+        static public string ParseCoverAddressXiami(HtmlDocument PageDocument)
         {
             HtmlNode coverAddressNode = PageDocument.DocumentNode.SelectSingleNode("//a[@id=\"cover_lightbox\"]");
             if (coverAddressNode != null)
@@ -171,7 +180,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
-        static public List<List<string>> ParseTrackList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackListXiami(HtmlDocument PageDocument)
         {
             HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
@@ -196,7 +205,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackUrlListXiami(HtmlDocument PageDocument)
         {
             HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
@@ -221,7 +230,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackArtistListXiami(HtmlDocument PageDocument)
         {
             HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
@@ -261,7 +270,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Lyric</returns>
-        static public string ParseTrackLyric(HtmlDocument PageDocument)
+        static public string ParseTrackLyricXiami(HtmlDocument PageDocument)
         {
             string lyric = "";
             HtmlNode lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"lrc_main\"]");
@@ -278,7 +287,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Album title</returns>
-        static public string ParseAlbumTitle(HtmlDocument PageDocument)
+        static public string ParseAlbumTitleXiami(HtmlDocument PageDocument)
         {
             HtmlNode titleNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"title\"]/h1");
             if (titleNode != null)
@@ -301,7 +310,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Album artist</returns>
-        static public string ParseAlbumArtist(HtmlDocument PageDocument)
+        static public string ParseAlbumArtistXiami(HtmlDocument PageDocument)
         {
             HtmlNode artistNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[1]/td[2]/a");
             if (artistNode != null)
@@ -319,7 +328,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Album year</returns>
-        static public uint ParseAlbumYear(HtmlDocument PageDocument)
+        static public uint ParseAlbumYearXiami(HtmlDocument PageDocument)
         {
             HtmlNode yearNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[4]/td[2]");
             if (yearNode != null)
@@ -337,7 +346,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="PageDocument">Page as document</param>
         /// <returns>Struct which stores all four necessary parameters for verify code, plus local verify image code address</returns>
-        static public VerifyCode GetVerifyCode(HtmlDocument PageDocument)
+        static public VerifyCode GetVerifyCodeXiami(HtmlDocument PageDocument)
         {
             string localVerifyCode = System.IO.Path.GetTempFileName() + ".jpg";
             HtmlNode codeNode = PageDocument.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]");
@@ -356,7 +365,7 @@ namespace CoverGrabber
         /// </summary>
         /// <param name="VerifyData">The struct which contains all four necessary parameters</param>
         /// <returns>The page after posting as Document</returns>
-        static public HtmlDocument PostVerifyCode(VerifyCode VerifyData)
+        static public HtmlDocument PostVerifyCodeXiami(VerifyCode VerifyData)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://www.xiami.com/alisec/captcha/tmdgetv3.php");
 
@@ -461,9 +470,8 @@ namespace CoverGrabber
         /// <param name="AlbumPage">Album page (which contains cover)</param>
         /// <param name="ResizeSize">The maximum size of width/height after resize (0 for skipping resizing)</param>
         /// <returns>The file path after resizing</returns>
-        static public string DownloadCover(HtmlDocument AlbumPage, int ResizeSize)
+        static public string DownloadCover(string remoteCoverUrl, int ResizeSize)
         {
-            string remoteCoverUrl = Utility.ParseCoverAddress(AlbumPage);
             string largeTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + ".jpg";
             string smallTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + "s.jpg";
             if (File.Exists(largeTempFile))

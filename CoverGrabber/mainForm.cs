@@ -10,6 +10,15 @@ namespace CoverGrabber
 {
     public partial class mainForm : Form
     {
+        Utility.ParseCoverAddress parseCoverAddress;
+        Utility.ParseTrackList parseTrackList;
+        Utility.ParseTrackUrlList parseTrackUrlList;
+        Utility.ParseTrackArtistList parseTrackArtistList;
+        Utility.ParseTrackLyric parseTrackLyric;
+        Utility.ParseAlbumTitle parseAlbumTitle;
+        Utility.ParseAlbumArtist parseAlbumArtist;
+        Utility.ParseAlbumYear parseAlbumYear;
+
         public mainForm()
         {
             InitializeComponent();
@@ -50,6 +59,22 @@ namespace CoverGrabber
 
         private void goB_Click(object sender, EventArgs e)
         {
+            GrabOptions grabOptions = new GrabOptions();
+            grabOptions.site = Sites.Null;
+            grabOptions.localFolder = this.folder.Text;
+            grabOptions.webPageUrl = this.url.Text;
+            grabOptions.needCover = this.coverC.Checked;
+            grabOptions.resizeSize = (int)this.resizeSize.Value;
+            grabOptions.needId3 = this.id3C.Checked;
+            grabOptions.needLyric = this.lyricC.Checked;
+
+            this.InitializeEnvironment(ref grabOptions);
+            if (grabOptions.site == Sites.Null)
+            {
+                MessageBox.Show("Not supported site.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             this.folder.Enabled = false;
             this.folderB.Enabled = false;
             this.url.Enabled = false;
@@ -58,14 +83,6 @@ namespace CoverGrabber
             this.id3C.Enabled = false;
             this.lyricC.Enabled = false;
             this.goB.Enabled = false;
-
-            GrabOptions grabOptions = new GrabOptions();
-            grabOptions.localFolder = this.folder.Text;
-            grabOptions.webPageUrl = this.url.Text;
-            grabOptions.needCover = this.coverC.Checked;
-            grabOptions.resizeSize = (int)this.resizeSize.Value;
-            grabOptions.needId3 = this.id3C.Checked;
-            grabOptions.needLyric = this.lyricC.Checked;
 
             this.bw.RunWorkerAsync(grabOptions);
         }
@@ -192,7 +209,7 @@ namespace CoverGrabber
             SetProgress(Bw, 20, "Getting tracks list...", ProgressReportObject.Skip, "");
             try
             {
-                trackNamesByDiscs = Utility.ParseTrackList(albumPage);
+                trackNamesByDiscs = this.parseTrackList(albumPage);
             }
             catch (Exception e)
             {
@@ -222,7 +239,8 @@ namespace CoverGrabber
                 SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.Skip, "");
                 try
                 {
-                    smallTempFile = Utility.DownloadCover(albumPage, options.resizeSize);
+                    string largeCoverUrl = this.parseCoverAddress(albumPage);
+                    smallTempFile = Utility.DownloadCover(largeCoverUrl, options.resizeSize);
                 }
                 catch (Exception e)
                 {
@@ -242,7 +260,7 @@ namespace CoverGrabber
                 {
                     SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.TextClear, "");
 
-                    artistNamesByDiscs = Utility.ParseTrackArtistList(albumPage);
+                    artistNamesByDiscs = this.parseTrackArtistList(albumPage);
                     foreach (var trackList in trackNamesByDiscs)
                     {
                         foreach (string track in trackList)
@@ -250,9 +268,9 @@ namespace CoverGrabber
                             SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.Text, track + "\n");
                         }
                     }
-                    albumTitle = Utility.ParseAlbumTitle(albumPage);
-                    albumArtistName = Utility.ParseAlbumArtist(albumPage);
-                    albumYear = Utility.ParseAlbumYear(albumPage);
+                    albumTitle = this.parseAlbumTitle(albumPage);
+                    albumArtistName = this.parseAlbumArtist(albumPage);
+                    albumYear = this.parseAlbumYear(albumPage);
 
                     SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumTitle, albumTitle);
                     SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumArtist, albumArtistName);
@@ -272,7 +290,7 @@ namespace CoverGrabber
                 SetProgress(Bw, 50, "Getting lyrics...", ProgressReportObject.Skip, "");
 
                 currentTrackIndex = 0;
-                List<List<string>> trackUrlListByDiscs = Utility.ParseTrackUrlList(albumPage);
+                List<List<string>> trackUrlListByDiscs = this.parseTrackUrlList(albumPage);
 
                 foreach (var trackUrlInDisc in trackUrlListByDiscs)
                 {
@@ -286,7 +304,8 @@ namespace CoverGrabber
 
                             if (trackUrl != "")
                             {
-                                lyric = Utility.ParseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl));
+                                /* TODO: Site */
+                                lyric = this.parseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl));
                                 if (lyric != "")
                                 {
                                     SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
@@ -404,6 +423,22 @@ namespace CoverGrabber
 
             }
             return (fileList);
+        }
+
+        private void InitializeEnvironment(ref GrabOptions grabOptions)
+        {
+            if(grabOptions.webPageUrl.StartsWith(@"http://www.xiami.com/album/"))
+            {
+                grabOptions.site = Sites.Xiami;
+                this.parseCoverAddress = Utility.ParseCoverAddressXiami;
+                this.parseTrackList = Utility.ParseTrackListXiami;
+                this.parseTrackUrlList = Utility.ParseTrackUrlListXiami;
+                this.parseTrackArtistList = Utility.ParseTrackArtistListXiami;
+                this.parseTrackLyric = Utility.ParseTrackLyricXiami;
+                this.parseAlbumTitle = Utility.ParseAlbumTitleXiami;
+                this.parseAlbumArtist = Utility.ParseAlbumArtistXiami;
+                this.parseAlbumYear = Utility.ParseAlbumYearXiami;
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ namespace CoverGrabber
         public int resizeSize;
         public bool needId3;
         public bool needLyric;
+        public Sites site;
     }
 
     public struct ProgressOptions
@@ -47,5 +48,17 @@ namespace CoverGrabber
         TextClear,
         VerifyCode,
         Skip
+    }
+
+    public enum Sites
+    {
+        Null,
+        Xiami,
+        Netease,
+        AmazonJp,
+        LastFm,
+        VgmDb,
+        MusicBrainz,
+        ItunesStore
     }
 }
