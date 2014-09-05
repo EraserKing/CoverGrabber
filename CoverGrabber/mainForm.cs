@@ -195,7 +195,7 @@ namespace CoverGrabber
             SetProgress(Bw, 10, "Getting remote page information...", ProgressReportObject.Skip, "");
             try
             {
-                albumPage = Utility.DownloadPage(options.webPageUrl);
+                albumPage = Utility.DownloadPage(options.webPageUrl, options.site);
             }
             catch (Exception e)
             {
@@ -240,7 +240,7 @@ namespace CoverGrabber
                 try
                 {
                     string largeCoverUrl = this.parseCoverAddress(albumPage);
-                    smallTempFile = Utility.DownloadCover(largeCoverUrl, options.resizeSize);
+                    smallTempFile = Utility.GenerateCover(largeCoverUrl, options.resizeSize);
                 }
                 catch (Exception e)
                 {
@@ -304,8 +304,14 @@ namespace CoverGrabber
 
                             if (trackUrl != "")
                             {
-                                /* TODO: Site */
-                                lyric = this.parseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl));
+                                switch (options.site)
+                                {
+                                    case (Sites.Xiami):
+                                        {
+                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl, options.site));
+                                            break;
+                                        }
+                                }
                                 if (lyric != "")
                                 {
                                     SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
@@ -427,17 +433,32 @@ namespace CoverGrabber
 
         private void InitializeEnvironment(ref GrabOptions grabOptions)
         {
-            if(grabOptions.webPageUrl.StartsWith(@"http://www.xiami.com/album/"))
+            if (grabOptions.webPageUrl.StartsWith(@"http://www.xiami.com/album/"))
             {
                 grabOptions.site = Sites.Xiami;
-                this.parseCoverAddress = Utility.ParseCoverAddressXiami;
-                this.parseTrackList = Utility.ParseTrackListXiami;
-                this.parseTrackUrlList = Utility.ParseTrackUrlListXiami;
-                this.parseTrackArtistList = Utility.ParseTrackArtistListXiami;
-                this.parseTrackLyric = Utility.ParseTrackLyricXiami;
-                this.parseAlbumTitle = Utility.ParseAlbumTitleXiami;
-                this.parseAlbumArtist = Utility.ParseAlbumArtistXiami;
-                this.parseAlbumYear = Utility.ParseAlbumYearXiami;
+                this.parseCoverAddress = SiteXiami.ParseCoverAddress;
+                this.parseTrackList = SiteXiami.ParseTrackList;
+                this.parseTrackUrlList = SiteXiami.ParseTrackUrlList;
+                this.parseTrackArtistList = SiteXiami.ParseTrackArtistList;
+                this.parseTrackLyric = SiteXiami.ParseTrackLyric;
+                this.parseAlbumTitle = SiteXiami.ParseAlbumTitle;
+                this.parseAlbumArtist = SiteXiami.ParseAlbumArtist;
+                this.parseAlbumYear = SiteXiami.ParseAlbumYear;
+                return;
+            }
+
+            if (grabOptions.webPageUrl.StartsWith(@"http://music.163.com/"))
+            {
+                grabOptions.site = Sites.Netease;
+                this.parseCoverAddress = SiteNetease.ParseCoverAddress;
+                this.parseTrackList = SiteNetease.ParseTrackList;
+                this.parseTrackUrlList = SiteNetease.ParseTrackUrlList;
+                this.parseTrackArtistList = SiteNetease.ParseTrackArtistList;
+                this.parseTrackLyric = SiteNetease.ParseTrackLyric;
+                this.parseAlbumTitle = SiteNetease.ParseAlbumTitle;
+                this.parseAlbumArtist = SiteNetease.ParseAlbumArtist;
+                this.parseAlbumYear = SiteNetease.ParseAlbumYear;
+                return;
             }
         }
     }

@@ -103,6 +103,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shared.cs" />
+    <Compile Include="SiteNetease.cs" />
+    <Compile Include="SiteXiami.cs" />
     <Compile Include="Utility.cs" />
     <EmbeddedResource Include="mainForm.resx">
       <DependentUpon>mainForm.cs</DependentUpon>
