@@ -124,18 +124,28 @@ namespace CoverGrabber
         static public string ParseTrackLyric(HtmlDocument PageDocument)
         {
             string lyric = "";
-            HtmlNode lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"db db-open f-ib\"]");
+            HtmlNode lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"bd bd-open f-ib\"]");
 
             if (lyricNode != null)
             {
                 lyric = lyricNode.InnerText.Trim();
             }
-
-            lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"flag_more\"]");
-
-            if (lyricNode != null)
+            if (lyric.EndsWith("\n展开"))
             {
-                lyric += lyricNode.InnerText.Trim();
+                lyric = lyric.Substring(0, lyric.Length - 3);
+            }
+
+            //lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"flag_more\"]");
+
+            //if (lyricNode != null)
+            //{
+            //    lyric += lyricNode.InnerText.Trim();
+            //}
+
+            if (lyric == "暂时没有歌词，求歌词" ||
+                lyric == "纯音乐，无歌词")
+            {
+                lyric = "";
             }
             return (HttpUtility.HtmlDecode(lyric));
         }

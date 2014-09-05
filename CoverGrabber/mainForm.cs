@@ -311,6 +311,11 @@ namespace CoverGrabber
                                             lyric = this.parseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl, options.site));
                                             break;
                                         }
+                                    case (Sites.Netease):
+                                        {
+                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://music.163.com" + trackUrl, options.site));
+                                            break;
+                                        }
                                 }
                                 if (lyric != "")
                                 {
@@ -450,6 +455,8 @@ namespace CoverGrabber
             if (grabOptions.webPageUrl.StartsWith(@"http://music.163.com/"))
             {
                 grabOptions.site = Sites.Netease;
+                // Rename http://music.163.com/#/album?id=76460 to http://music.163.com/album?id=76460, otherwise it doesn't work
+                grabOptions.webPageUrl = grabOptions.webPageUrl.Replace("/#/", "/");
                 this.parseCoverAddress = SiteNetease.ParseCoverAddress;
                 this.parseTrackList = SiteNetease.ParseTrackList;
                 this.parseTrackUrlList = SiteNetease.ParseTrackUrlList;
