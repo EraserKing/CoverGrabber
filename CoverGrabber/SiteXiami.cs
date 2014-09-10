@@ -79,8 +79,8 @@ namespace CoverGrabber
             for (int i = 1; i <= discNodes.Count; i++)
             {
                 List<string> trackUrlList = new List<string>();
-                string tempTracksXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]/a[1]";
-                HtmlNodeCollection trackUrlNodes = PageDocument.DocumentNode.SelectNodes(tempTracksXpath);
+                string tempTrackUrlsXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]/a[1]";
+                HtmlNodeCollection trackUrlNodes = PageDocument.DocumentNode.SelectNodes(tempTrackUrlsXpath);
                 for (int j = 0; j < trackUrlNodes.Count; j++)
                 {
                     string trackUrl = HttpUtility.HtmlDecode(trackUrlNodes[j].GetAttributeValue("href", ""));
@@ -104,16 +104,16 @@ namespace CoverGrabber
             for (int i = 1; i <= discNodes.Count; i++)
             {
                 List<string> trackArtistList = new List<string>();
-                string tempTracksXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]";
-                HtmlNodeCollection trackNodes = PageDocument.DocumentNode.SelectNodes(tempTracksXpath);
-                for (int j = 0; j < trackNodes.Count; j++)
+                string tempTrackArtistsXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]";
+                HtmlNodeCollection trackArtistNodes = PageDocument.DocumentNode.SelectNodes(tempTrackArtistsXpath);
+                for (int j = 0; j < trackArtistNodes.Count; j++)
                 {
                     /* The format may be
                      * <a href = "***">Original name</a>
                      * Track Artist
                      * <a href = "***">Translated name</a>
                      * */
-                    string artistName = HttpUtility.HtmlDecode(trackNodes[j].InnerHtml);
+                    string artistName = HttpUtility.HtmlDecode(trackArtistNodes[j].InnerHtml);
                     int tempPost = artistName.IndexOf("</a>");
                     if (tempPost != -1)
                     {

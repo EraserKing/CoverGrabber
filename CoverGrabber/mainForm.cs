@@ -467,6 +467,55 @@ namespace CoverGrabber
                 this.parseAlbumYear = SiteNetease.ParseAlbumYear;
                 return;
             }
+
+            if (grabOptions.webPageUrl.StartsWith(@"http://cn.last.fm/"))
+            {
+                grabOptions.site = Sites.LastFm;
+                this.parseCoverAddress = SiteLastFm.ParseCoverAddress;
+                this.parseTrackList = SiteLastFm.ParseTrackList;
+                this.parseTrackUrlList = SiteLastFm.ParseTrackUrlList;
+                this.parseTrackArtistList = SiteLastFm.ParseTrackArtistList;
+                this.parseTrackLyric = SiteLastFm.ParseTrackLyric;
+                this.parseAlbumTitle = SiteLastFm.ParseAlbumTitle;
+                this.parseAlbumArtist = SiteLastFm.ParseAlbumArtist;
+                this.parseAlbumYear = SiteLastFm.ParseAlbumYear;
+
+                grabOptions.needLyric = false;
+                return;
+            }
+
+            if (grabOptions.webPageUrl.StartsWith(@"http://vgmdb.net/"))
+            {
+                grabOptions.site = Sites.VgmDb;
+                this.parseCoverAddress = SiteVgmdb.ParseCoverAddress;
+                this.parseTrackList = SiteVgmdb.ParseTrackList;
+                this.parseTrackUrlList = SiteVgmdb.ParseTrackUrlList;
+                this.parseTrackArtistList = SiteVgmdb.ParseTrackArtistList;
+                this.parseTrackLyric = SiteVgmdb.ParseTrackLyric;
+                this.parseAlbumTitle = SiteVgmdb.ParseAlbumTitle;
+                this.parseAlbumArtist = SiteVgmdb.ParseAlbumArtist;
+                this.parseAlbumYear = SiteVgmdb.ParseAlbumYear;
+
+                grabOptions.needLyric = false;
+                return;
+            }
+
+            if (grabOptions.webPageUrl.StartsWith(@"http://musicbrainz.org/") ||
+                grabOptions.webPageUrl.StartsWith(@"https://musicbrainz.org/"))
+            {
+                grabOptions.site = Sites.MusicBrainz;
+                this.parseCoverAddress = SiteMusicBrainz.ParseCoverAddress;
+                this.parseTrackList = SiteMusicBrainz.ParseTrackList;
+                this.parseTrackUrlList = SiteMusicBrainz.ParseTrackUrlList;
+                this.parseTrackArtistList = SiteMusicBrainz.ParseTrackArtistList;
+                this.parseTrackLyric = SiteMusicBrainz.ParseTrackLyric;
+                this.parseAlbumTitle = SiteMusicBrainz.ParseAlbumTitle;
+                this.parseAlbumArtist = SiteMusicBrainz.ParseAlbumArtist;
+                this.parseAlbumYear = SiteMusicBrainz.ParseAlbumYear;
+
+                grabOptions.needLyric = false;
+                return;
+            }
         }
     }
 }
