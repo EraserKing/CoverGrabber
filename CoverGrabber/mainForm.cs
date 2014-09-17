@@ -516,6 +516,22 @@ namespace CoverGrabber
                 grabOptions.needLyric = false;
                 return;
             }
+            if (grabOptions.webPageUrl.StartsWith(@"http://itunes.apple.com/") ||
+                grabOptions.webPageUrl.StartsWith(@"https://itunes.apple.com/"))
+            {
+                grabOptions.site = Sites.ItunesStore;
+                this.parseCoverAddress = SiteItunes.ParseCoverAddress;
+                this.parseTrackList = SiteItunes.ParseTrackList;
+                this.parseTrackUrlList = SiteItunes.ParseTrackUrlList;
+                this.parseTrackArtistList = SiteItunes.ParseTrackArtistList;
+                this.parseTrackLyric = SiteItunes.ParseTrackLyric;
+                this.parseAlbumTitle = SiteItunes.ParseAlbumTitle;
+                this.parseAlbumArtist = SiteItunes.ParseAlbumArtist;
+                this.parseAlbumYear = SiteItunes.ParseAlbumYear;
+
+                grabOptions.needLyric = false;
+                return;
+            }
         }
     }
 }
