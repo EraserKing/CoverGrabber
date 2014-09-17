@@ -5,6 +5,8 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Web;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CoverGrabber
 {
@@ -48,39 +50,22 @@ namespace CoverGrabber
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
         static public List<List<string>> ParseTrackList(HtmlDocument PageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//table[@class=\"tbl\"]/tr[@class=\"subh\"]");
+            JObject jsonRoot = getJsonContent(PageDocument);
+
+            JArray discNodes = (JArray)jsonRoot["mediums"];
 
             List<List<string>> dictList = new List<List<string>>();
 
-            int currentLine = 1;
-            for (int i = 0; i <= discNodes.Count; i++)
+            for (int i = 0; i < discNodes.Count; i++)
             {
                 List<string> trackList = new List<string>();
-                string tempTrackXpath = "//table[@class=\"tbl\"]/tbody/tr[" + currentLine.ToString() + "]";
-                HtmlNode trackNode = PageDocument.DocumentNode.SelectSingleNode(tempTrackXpath);
-                // Reach the end
-                if (trackNode == null)
-                {
-                    dictList.Add(trackList);
-                    break;
-                }
-                // New disc - first line
-                if (trackNode.GetAttributeValue("class", "") == "subh" && currentLine == 1)
-                {
-                    currentLine++;
-                    continue;
-                }
-                // New disc - not first line
-                if (trackNode.GetAttributeValue("class", "") == "subh" && currentLine != 1)
-                {
-                    dictList.Add(trackList);
-                    currentLine++;
-                    continue;
-                }
-                tempTrackXpath += "/td[2]/span/a/bdi";
-                trackNode = PageDocument.DocumentNode.SelectSingleNode(tempTrackXpath);
-                trackList.Add(HttpUtility.HtmlDecode(trackNode.InnerText));
 
+                JArray trackNodesInDisc = (JArray)jsonRoot["mediums"][i]["tracks"];
+                for (int j = 0; j < trackNodesInDisc.Count; j++)
+                {
+                    string trackName = (string)jsonRoot["mediums"][i]["tracks"][j]["name"];
+                    trackList.Add(trackName);
+                }
                 dictList.Add(trackList);
             }
             return (dictList);
@@ -93,40 +78,23 @@ namespace CoverGrabber
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
         static public List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//table[@class=\"tbl\"]/tr[@class=\"subh\"]");
+            JObject jsonRoot = getJsonContent(PageDocument);
+
+            JArray discNodes = (JArray)jsonRoot["mediums"];
 
             List<List<string>> dictList = new List<List<string>>();
 
-            int currentLine = 1;
-            for (int i = 0; i <= discNodes.Count; i++)
+            for (int i = 0; i < discNodes.Count; i++)
             {
-                List<string> trackList = new List<string>();
-                string tempTrackUrlXpath = "//table[@class=\"tbl\"]/tbody/tr[" + currentLine.ToString() + "]";
-                HtmlNode trackUrlNode = PageDocument.DocumentNode.SelectSingleNode(tempTrackUrlXpath);
-                // Reach the end
-                if (trackUrlNode == null)
-                {
-                    dictList.Add(trackList);
-                    break;
-                }
-                // New disc - first line
-                if (trackUrlNode.GetAttributeValue("class", "") == "subh" && currentLine == 1)
-                {
-                    currentLine++;
-                    continue;
-                }
-                // New disc - not first line
-                if (trackUrlNode.GetAttributeValue("class", "") == "subh" && currentLine != 1)
-                {
-                    dictList.Add(trackList);
-                    currentLine++;
-                    continue;
-                }
-                tempTrackUrlXpath += "/td[2]/span/a";
-                trackUrlNode = PageDocument.DocumentNode.SelectSingleNode(tempTrackUrlXpath);
-                trackList.Add(HttpUtility.HtmlDecode(trackUrlNode.GetAttributeValue("href", "")));
+                List<string> trackUrlList = new List<string>();
 
-                dictList.Add(trackList);
+                JArray trackUrlNodesInDisc = (JArray)jsonRoot["mediums"][i]["tracks"];
+                for (int j = 0; j < trackUrlNodesInDisc.Count; j++)
+                {
+                    string trackUrl = (string)jsonRoot["mediums"][i]["tracks"][j]["recording"]["gid"];
+                    trackUrlList.Add(trackUrl);
+                }
+                dictList.Add(trackUrlList);
             }
             return (dictList);
         }
@@ -138,40 +106,23 @@ namespace CoverGrabber
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
         static public List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//table[@class=\"tbl\"]/tr[@class=\"subh\"]");
+            JObject jsonRoot = getJsonContent(PageDocument);
+
+            JArray discNodes = (JArray)jsonRoot["mediums"];
 
             List<List<string>> dictList = new List<List<string>>();
 
-            int currentLine = 1;
-            for (int i = 0; i <= discNodes.Count; i++)
+            for (int i = 0; i < discNodes.Count; i++)
             {
-                List<string> trackList = new List<string>();
-                string tempTrackArtistXpath = "//table[@class=\"tbl\"]/tbody/tr[" + currentLine.ToString() + "]";
-                HtmlNode trackArtistNode = PageDocument.DocumentNode.SelectSingleNode(tempTrackArtistXpath);
-                // Reach the end
-                if (trackArtistNode == null)
-                {
-                    dictList.Add(trackList);
-                    break;
-                }
-                // New disc - first line
-                if (trackArtistNode.GetAttributeValue("class", "") == "subh" && currentLine == 1)
-                {
-                    currentLine++;
-                    continue;
-                }
-                // New disc - not first line
-                if (trackArtistNode.GetAttributeValue("class", "") == "subh" && currentLine != 1)
-                {
-                    dictList.Add(trackList);
-                    currentLine++;
-                    continue;
-                }
-                tempTrackArtistXpath += "/td[3]/a/bdi";
-                trackArtistNode = PageDocument.DocumentNode.SelectSingleNode(tempTrackArtistXpath);
-                trackList.Add(HttpUtility.HtmlDecode(trackArtistNode.InnerText));
+                List<string> trackArtistList = new List<string>();
 
-                dictList.Add(trackList);
+                JArray trackArtistNodesInDisc = (JArray)jsonRoot["mediums"][i]["tracks"];
+                for (int j = 0; j < trackArtistNodesInDisc.Count; j++)
+                {
+                    string trackArtist = (string)jsonRoot["mediums"][i]["tracks"][j]["artistCredit"][0]["name"];
+                    trackArtistList.Add(trackArtist);
+                }
+                dictList.Add(trackArtistList);
             }
             return (dictList);
         }
@@ -238,6 +189,17 @@ namespace CoverGrabber
             {
                 return (0);
             }
+        }
+
+        static private JObject getJsonContent(HtmlDocument PageDocument)
+        {
+            string fullPageContent = PageDocument.DocumentNode.InnerHtml;
+            string jsonContent = fullPageContent.Substring(fullPageContent.IndexOf("MB.Release.init(") + "MB.Release.init(".Length);
+            jsonContent = jsonContent.Substring(0, jsonContent.IndexOf("</script>")).Trim();
+            jsonContent = jsonContent.Substring(0, jsonContent.LastIndexOf(")")).Trim();
+
+            JObject jsonRoot = JObject.Parse(jsonContent);
+            return jsonRoot;
         }
     }
 }

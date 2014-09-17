@@ -8,7 +8,7 @@ using System.Web;
 
 namespace CoverGrabber
 {
-    class SiteLastFm
+    static class SiteLastFm
     {
         static public void InitializeRequest(ref HttpWebRequest Request, string Url)
         {

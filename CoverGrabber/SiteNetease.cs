@@ -8,7 +8,7 @@ using System.Web;
 
 namespace CoverGrabber
 {
-    class SiteNetease
+    static class SiteNetease
     {
         static public void InitializeRequest(ref HttpWebRequest Request, string Url)
         {

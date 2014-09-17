@@ -8,7 +8,7 @@ using System.Web;
 
 namespace CoverGrabber
 {
-    class SiteVgmdb
+    static class SiteVgmdb
     {
         static public void InitializeRequest(ref HttpWebRequest Request, string Url)
         {
