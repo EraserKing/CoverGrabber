@@ -113,6 +113,12 @@
     <Compile Include="SiteNetease.cs" />
     <Compile Include="SiteMusicBrainz.cs" />
     <Compile Include="SiteXiami.cs" />
+    <Compile Include="sortForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="sortForm.Designer.cs">
+      <DependentUpon>sortForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utility.cs" />
     <EmbeddedResource Include="mainForm.resx">
       <DependentUpon>mainForm.cs</DependentUpon>
@@ -127,6 +133,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="sortForm.resx">
+      <DependentUpon>sortForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="CoverGrabber_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />

@@ -19,6 +19,8 @@ namespace CoverGrabber
         Utility.ParseAlbumArtist parseAlbumArtist;
         Utility.ParseAlbumYear parseAlbumYear;
 
+        GrabOptions grabOptions = new GrabOptions();
+
         public mainForm()
         {
             InitializeComponent();
@@ -59,7 +61,6 @@ namespace CoverGrabber
 
         private void goB_Click(object sender, EventArgs e)
         {
-            GrabOptions grabOptions = new GrabOptions();
             grabOptions.site = Sites.Null;
             grabOptions.localFolder = this.folder.Text;
             grabOptions.webPageUrl = this.url.Text;
@@ -67,6 +68,18 @@ namespace CoverGrabber
             grabOptions.resizeSize = (int)this.resizeSize.Value;
             grabOptions.needId3 = this.id3C.Checked;
             grabOptions.needLyric = this.lyricC.Checked;
+            if (this.sAutoRs.Checked)
+            {
+                grabOptions.sortMode = "Auto";
+            }
+            else if (this.sNaturallyRs.Checked)
+            {
+                grabOptions.sortMode = "Naturally";
+            }
+            else if (this.sManuallyRs.Checked)
+            {
+                grabOptions.sortMode = "Manually";
+            }
 
             this.InitializeEnvironment(ref grabOptions);
             if (grabOptions.site == Sites.Null)
@@ -181,7 +194,14 @@ namespace CoverGrabber
             SetProgress(Bw, 0, "Getting information for local tracks...", ProgressReportObject.Skip, "");
             try
             {
-                fileList = GenerateFileList(options.localFolder);
+                if (options.sortMode == "Auto")
+                {
+                    fileList = GenerateFileList(options.localFolder);
+                }
+                else if (options.sortMode == "Manually")
+                {
+                    fileList = options.fileList;
+                }
             }
             catch (DirectoryNotFoundException e)
             {
@@ -533,5 +553,61 @@ namespace CoverGrabber
                 return;
             }
         }
+
+        private void sNatuallyRs_CheckedChanged(object sender, EventArgs e)
+        {
+            if (sNaturallyRs.Checked)
+            {
+                this.sortB.Enabled = false;
+            }
+        }
+
+        private void sAutoRs_CheckedChanged(object sender, EventArgs e)
+        {
+            if (sAutoRs.Checked)
+            {
+                this.sortB.Enabled = false;
+            }
+        }
+
+        private void sManuallyRs_CheckedChanged(object sender, EventArgs e)
+        {
+            if (sManuallyRs.Checked)
+            {
+                this.sortB.Enabled = true;
+            }
+        }
+
+        private void mainForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void sortB_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (grabOptions.fileList == null)
+                {
+                    grabOptions.fileList = GenerateFileList(this.folder.Text);
+                }
+            }
+            catch (DirectoryNotFoundException e1)
+            {
+                MessageBox.Show("Folder " + e1.Message + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            sortForm sf = new sortForm(grabOptions.fileList);
+            sf.ShowDialog();
+            grabOptions.fileList = sf.files;
+        }
+
+        private void folder_TextChanged(object sender, EventArgs e)
+        {
+            this.sNaturallyRs.Checked = true;
+            this.sortB.Enabled = false;
+            grabOptions.fileList = null;
+        }
+
     }
 }

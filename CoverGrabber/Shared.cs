@@ -15,7 +15,9 @@ namespace CoverGrabber
         public int resizeSize;
         public bool needId3;
         public bool needLyric;
+        public string sortMode;
         public Sites site;
+        public List<string> fileList;
     }
 
     public struct ProgressOptions
