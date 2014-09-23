@@ -60,6 +60,26 @@ namespace CoverGrabber
                         SiteNetease.InitializeRequest(ref request, Url);
                         break;
                     }
+                case(Sites.ItunesStore):
+                    {
+                        SiteItunes.InitializeRequest(ref request, Url);
+                        break;
+                    }
+                case(Sites.MusicBrainz):
+                    {
+                        SiteMusicBrainz.InitializeRequest(ref request, Url);
+                        break;
+                    }
+                case(Sites.VgmDb):
+                    {
+                        SiteVgmdb.InitializeRequest(ref request, Url);
+                        break;
+                    }
+                case(Sites.LastFm):
+                    {
+                        SiteLastFm.InitializeRequest(ref request, Url);
+                        break;
+                    }
             }
 
             string responseText = "";
