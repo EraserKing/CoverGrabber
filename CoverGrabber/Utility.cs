@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Web;
+using System.Text.RegularExpressions;
 
 namespace CoverGrabber
 {
@@ -55,27 +56,27 @@ namespace CoverGrabber
                         SiteXiami.InitializeRequest(ref request, Url);
                         break;
                     }
-                case(Sites.Netease):
+                case (Sites.Netease):
                     {
                         SiteNetease.InitializeRequest(ref request, Url);
                         break;
                     }
-                case(Sites.ItunesStore):
+                case (Sites.ItunesStore):
                     {
                         SiteItunes.InitializeRequest(ref request, Url);
                         break;
                     }
-                case(Sites.MusicBrainz):
+                case (Sites.MusicBrainz):
                     {
                         SiteMusicBrainz.InitializeRequest(ref request, Url);
                         break;
                     }
-                case(Sites.VgmDb):
+                case (Sites.VgmDb):
                     {
                         SiteVgmdb.InitializeRequest(ref request, Url);
                         break;
                     }
-                case(Sites.LastFm):
+                case (Sites.LastFm):
                     {
                         SiteLastFm.InitializeRequest(ref request, Url);
                         break;
@@ -288,6 +289,60 @@ namespace CoverGrabber
             }
 
             trackFile.Save();
+        }
+
+        /// <summary>
+        /// Sort file in auto sort mode
+        /// </summary>
+        /// <param name="localFileList">The list of local files</param>
+        /// <param name="remoteTracksByDiscs">The list of remote files, two-layers</param>
+        /// <param name="ifValid">Indicate whether the output list is valid. Not valid if not full map</param>
+        /// <param name="localToRemoteMap"></param>
+        /// <returns></returns>
+        static public List<string> AutoSortFile(List<string> localFileList, List<List<string>> remoteTracksByDiscs, out bool ifValid, out Dictionary<string, Tuple<int, int>> localToRemoteMap)
+        {
+            List<string> sortResult = new List<string>(localFileList.Count);
+            // Generate a list in which files are sorted naturally.
+            List<string> naturalFileList = new List<string>(localFileList.ToArray());
+
+            ifValid = true;
+            localToRemoteMap = new Dictionary<string, Tuple<int, int>>();
+            int remoteTrackNumber = -1;
+
+            for (int i = 0; i < remoteTracksByDiscs.Count; i++)
+            {
+                for (int j = 0; j < remoteTracksByDiscs[i].Count; j++)
+                {
+                    remoteTrackNumber++;
+                    string remoteTrackName = remoteTracksByDiscs[i][j];
+
+                    // For each remote track, search all local files
+                    for (int k = 0; k < naturalFileList.Count; k++)
+                    {
+                        string localFullFileName = naturalFileList[k];
+                        if (localFullFileName == "")
+                        {
+                            continue;
+                        }
+                        string localFileName = localFullFileName.Substring(localFullFileName.LastIndexOf("\\") + 1);
+                        localFileName = localFileName.Substring(0, localFileName.LastIndexOf("."));
+
+                        // If we're lucky enough to get such a local file
+                        if (localFileName.IndexOf(remoteTrackName, StringComparison.OrdinalIgnoreCase) != -1)
+                        {
+                            localToRemoteMap.Add(naturalFileList[k], new Tuple<int, int>(i, j));
+                            sortResult.Add(naturalFileList[k]);
+                            naturalFileList[k] = "";
+                            break;
+                        }
+                    }
+                }
+            }
+            if (localToRemoteMap.Count != naturalFileList.Count)
+            {
+                ifValid = false;
+            }
+            return (sortResult);
         }
     }
 }

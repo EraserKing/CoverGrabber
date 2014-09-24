@@ -25,13 +25,13 @@ namespace CoverGrabber
             this.fileLv.Clear();
             this.fileLv.BeginUpdate();
             this.fileLv.Columns.Add("Path", 690);
-            this.fileLv.Columns.Add("Size", 60);
+            this.fileLv.Columns.Add("Size", 60, HorizontalAlignment.Right);
             this.files = fileList;
             foreach (var filePath in fileList)
             {
                 ListViewItem lvi = new ListViewItem();
                 lvi.Text = filePath;
-                lvi.SubItems.Add(((new FileInfo(filePath).Length) / 1024 / 1024).ToString("F2") + " MB");
+                lvi.SubItems.Add(((new FileInfo(filePath).Length) / (1024 * 1024 * 1.0)).ToString("F2") + " MB");
                 this.fileLv.Items.Add(lvi);
             }
             this.fileLv.EndUpdate();

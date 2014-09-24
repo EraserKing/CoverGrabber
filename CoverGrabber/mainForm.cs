@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.Linq;
 using TagLib;
 
 namespace CoverGrabber
@@ -20,6 +21,7 @@ namespace CoverGrabber
         Utility.ParseAlbumYear parseAlbumYear;
 
         GrabOptions grabOptions = new GrabOptions();
+        List<string> sortedFileList = new List<string>();
 
         public mainForm()
         {
@@ -61,32 +63,36 @@ namespace CoverGrabber
 
         private void goB_Click(object sender, EventArgs e)
         {
-            grabOptions.site = Sites.Null;
-            grabOptions.localFolder = this.folder.Text;
-            grabOptions.webPageUrl = this.url.Text;
-            grabOptions.needCover = this.coverC.Checked;
-            grabOptions.resizeSize = (int)this.resizeSize.Value;
-            grabOptions.needId3 = this.id3C.Checked;
-            grabOptions.needLyric = this.lyricC.Checked;
+            GrabOptions options = new GrabOptions();
+            options.site = Sites.Null;
+            options.localFolder = this.folder.Text;
+            options.webPageUrl = this.url.Text;
+            options.needCover = this.coverC.Checked;
+            options.resizeSize = (int)this.resizeSize.Value;
+            options.needId3 = this.id3C.Checked;
+            options.needLyric = this.lyricC.Checked;
             if (this.sAutoRs.Checked)
             {
-                grabOptions.sortMode = "Auto";
+                options.sortMode = "Auto";
             }
             else if (this.sNaturallyRs.Checked)
             {
-                grabOptions.sortMode = "Naturally";
+                options.sortMode = "Naturally";
             }
             else if (this.sManuallyRs.Checked)
             {
-                grabOptions.sortMode = "Manually";
+                options.sortMode = "Manually";
             }
+            options.fileList = this.sortedFileList;
 
-            this.InitializeEnvironment(ref grabOptions);
-            if (grabOptions.site == Sites.Null)
+            this.InitializeEnvironment(ref options);
+            if (options.site == Sites.Null)
             {
                 MessageBox.Show("Not supported site.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+
+            grabOptions = options;
 
             this.folder.Enabled = false;
             this.folderB.Enabled = false;
@@ -188,13 +194,13 @@ namespace CoverGrabber
                 MessageBox.Show("You haven't pick any task.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            #endregion Preparation work
+            #endregion
 
             #region Check local folder and generate files list
             SetProgress(Bw, 0, "Getting information for local tracks...", ProgressReportObject.Skip, "");
             try
             {
-                if (options.sortMode == "Auto")
+                if (options.sortMode == "Auto" || options.sortMode == "Naturally")
                 {
                     fileList = GenerateFileList(options.localFolder);
                 }
@@ -209,7 +215,7 @@ namespace CoverGrabber
                 CleanProgress(Bw);
                 return;
             }
-            #endregion Check local folder and generate files list
+            #endregion
 
             #region Get remote page
             SetProgress(Bw, 10, "Getting remote page information...", ProgressReportObject.Skip, "");
@@ -223,7 +229,7 @@ namespace CoverGrabber
                 CleanProgress(Bw);
                 return;
             }
-            #endregion Get remote page
+            #endregion
 
             #region Generate track lists
             SetProgress(Bw, 20, "Getting tracks list...", ProgressReportObject.Skip, "");
@@ -237,7 +243,7 @@ namespace CoverGrabber
                 CleanProgress(Bw);
                 return;
             }
-            #endregion Generate track lists
+            #endregion
 
             #region Compare if quantity tracks in local and on page equal
             foreach (var trackNamesInDisc in trackNamesByDiscs)
@@ -251,7 +257,59 @@ namespace CoverGrabber
                 CleanProgress(Bw);
                 return;
             }
-            #endregion Compare if quantity tracks in local and on page equal
+            #endregion
+
+            #region Generate file list in auto sort mode
+            if (options.sortMode == "Auto")
+            {
+                bool ifValid;
+                Dictionary<string, Tuple<int, int>> localToRemoteMap;
+                List<string> sortedFileList;
+                sortedFileList = Utility.AutoSortFile(fileList, trackNamesByDiscs, out ifValid, out localToRemoteMap);
+                string promptMessage = "The auto sort result is:\n";
+                var queryResult = from key in localToRemoteMap.Keys
+                                  orderby key
+                                  select key;
+                foreach (var key in queryResult)
+                {
+                    promptMessage += key + " => " + trackNamesByDiscs[localToRemoteMap[key].Item1][localToRemoteMap[key].Item2] + "\n";
+                }
+                if (ifValid)
+                {
+                    promptMessage += "To accept this, press Yes. To continue to the naturally sort, press No. To cancel, press Cancel.";
+                    DialogResult dr = MessageBox.Show(promptMessage, "Auto sort result", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+                    if (dr == DialogResult.Yes)
+                    {
+                        fileList = sortedFileList;
+                    }
+                    else if (dr == DialogResult.Cancel)
+                    {
+                        CleanProgress(Bw);
+                        return;
+                    }
+                }
+                else
+                {
+                    string missingFiles = "";
+                    foreach(var key in fileList)
+                    {
+                        if (!localToRemoteMap.ContainsKey(key))
+                        {
+                            missingFiles += key + "\n";
+                        }
+                    }
+                    if(missingFiles!= "")
+                    {
+                        promptMessage += "\n These files do not have matched tracks:\n";
+                        promptMessage += missingFiles;
+                    }
+                    promptMessage += "You cannot continue in Auto mode, but you can sort them manually.";
+                    MessageBox.Show(promptMessage, "Auto sort result", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    CleanProgress(Bw);
+                    return;
+                }
+            }
+            #endregion
 
             #region Get cover
             if (options.needCover)
@@ -270,7 +328,7 @@ namespace CoverGrabber
                 }
                 SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.AlbumCover, smallTempFile);
             }
-            #endregion Get cover
+            #endregion
 
             #region Get ID3
             if (options.needId3)
@@ -302,7 +360,7 @@ namespace CoverGrabber
                     return;
                 }
             }
-            #endregion Get ID3
+            #endregion
 
             #region Get lyrics
             if (options.needLyric)
@@ -358,7 +416,7 @@ namespace CoverGrabber
                     lyricsByDiscs.Add(lyricInDisc);
                 }
             }
-            #endregion Get lyrics
+            #endregion
 
             #region Write file
             currentTrackIndex = 0;
@@ -406,13 +464,13 @@ namespace CoverGrabber
                     }
                 }
             }
-            #endregion Write file
+            #endregion
 
             #region Clean up
             SetProgress(Bw, 100, "Done", ProgressReportObject.Skip, "");
 
             MessageBox.Show("Done.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            #endregion Clean up
+            #endregion
         }
 
         private static void SetProgress(BackgroundWorker Bw, int Progress, string StatusMessage, ProgressReportObject ObjectName, string ObjectValue)
@@ -587,9 +645,9 @@ namespace CoverGrabber
         {
             try
             {
-                if (grabOptions.fileList == null)
+                if (this.sortedFileList == null)
                 {
-                    grabOptions.fileList = GenerateFileList(this.folder.Text);
+                    this.sortedFileList = GenerateFileList(this.folder.Text);
                 }
             }
             catch (DirectoryNotFoundException e1)
@@ -597,16 +655,16 @@ namespace CoverGrabber
                 MessageBox.Show("Folder " + e1.Message + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            sortForm sf = new sortForm(grabOptions.fileList);
+            sortForm sf = new sortForm(this.sortedFileList);
             sf.ShowDialog();
-            grabOptions.fileList = sf.files;
+            this.sortedFileList = sf.files;
         }
 
         private void folder_TextChanged(object sender, EventArgs e)
         {
             this.sNaturallyRs.Checked = true;
             this.sortB.Enabled = false;
-            grabOptions.fileList = null;
+            this.sortedFileList = null;
         }
 
     }
