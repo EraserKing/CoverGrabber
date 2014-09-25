@@ -309,15 +309,16 @@ namespace CoverGrabber
             localToRemoteMap = new Dictionary<string, Tuple<int, int>>();
             int remoteTrackNumber = -1;
 
-            for (int i = 0; i < remoteTracksByDiscs.Count; i++)
+            // A bit tricky: arrange from the last one, to make sure tracks "A" and "A(z)" are matched first for "A(z)" then "A". 
+            for (int i = remoteTracksByDiscs.Count - 1; i >= 0; i--)
             {
-                for (int j = 0; j < remoteTracksByDiscs[i].Count; j++)
+                for (int j = remoteTracksByDiscs[i].Count - 1; j >= 0; j--)
                 {
                     remoteTrackNumber++;
                     string remoteTrackName = remoteTracksByDiscs[i][j];
 
                     // For each remote track, search all local files
-                    for (int k = 0; k < naturalFileList.Count; k++)
+                    for (int k = naturalFileList.Count - 1; k >= 0; k--)
                     {
                         string localFullFileName = naturalFileList[k];
                         if (localFullFileName == "")
