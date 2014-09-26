@@ -51,10 +51,10 @@
             this.verifyCodeP = new System.Windows.Forms.PictureBox();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbSort = new System.Windows.Forms.GroupBox();
-            this.sNaturallyRs = new System.Windows.Forms.RadioButton();
-            this.sAutoRs = new System.Windows.Forms.RadioButton();
-            this.sManuallyRs = new System.Windows.Forms.RadioButton();
             this.sortB = new System.Windows.Forms.Button();
+            this.sManuallyRs = new System.Windows.Forms.RadioButton();
+            this.sAutoRs = new System.Windows.Forms.RadioButton();
+            this.sNaturallyRs = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.resizeSize)).BeginInit();
             this.sts.SuspendLayout();
@@ -68,7 +68,7 @@
             this.folderL.Location = new System.Drawing.Point(9, 14);
             this.folderL.Name = "folderL";
             this.folderL.Size = new System.Drawing.Size(36, 13);
-            this.folderL.TabIndex = 0;
+            this.folderL.TabIndex = 1;
             this.folderL.Text = "Folder";
             // 
             // folder
@@ -78,7 +78,7 @@
             this.folder.Location = new System.Drawing.Point(56, 12);
             this.folder.Name = "folder";
             this.folder.Size = new System.Drawing.Size(433, 20);
-            this.folder.TabIndex = 1;
+            this.folder.TabIndex = 2;
             this.folder.TextChanged += new System.EventHandler(this.folder_TextChanged);
             // 
             // url
@@ -88,7 +88,7 @@
             this.url.Location = new System.Drawing.Point(56, 39);
             this.url.Name = "url";
             this.url.Size = new System.Drawing.Size(433, 20);
-            this.url.TabIndex = 2;
+            this.url.TabIndex = 5;
             // 
             // urlL
             // 
@@ -96,7 +96,7 @@
             this.urlL.Location = new System.Drawing.Point(9, 42);
             this.urlL.Name = "urlL";
             this.urlL.Size = new System.Drawing.Size(29, 13);
-            this.urlL.TabIndex = 3;
+            this.urlL.TabIndex = 4;
             this.urlL.Text = "URL";
             // 
             // folderB
@@ -105,7 +105,7 @@
             this.folderB.Location = new System.Drawing.Point(495, 12);
             this.folderB.Name = "folderB";
             this.folderB.Size = new System.Drawing.Size(75, 23);
-            this.folderB.TabIndex = 4;
+            this.folderB.TabIndex = 3;
             this.folderB.Text = "&Browse...";
             this.folderB.UseVisualStyleBackColor = true;
             this.folderB.Click += new System.EventHandler(this.folderB_Click);
@@ -117,7 +117,7 @@
             this.extractC.Location = new System.Drawing.Point(55, 68);
             this.extractC.Name = "extractC";
             this.extractC.Size = new System.Drawing.Size(59, 17);
-            this.extractC.TabIndex = 6;
+            this.extractC.TabIndex = 7;
             this.extractC.Text = "Extract";
             this.extractC.UseVisualStyleBackColor = true;
             // 
@@ -129,7 +129,7 @@
             this.coverC.Location = new System.Drawing.Point(120, 68);
             this.coverC.Name = "coverC";
             this.coverC.Size = new System.Drawing.Size(72, 17);
-            this.coverC.TabIndex = 7;
+            this.coverC.TabIndex = 8;
             this.coverC.Text = "Set cover";
             this.coverC.UseVisualStyleBackColor = true;
             this.coverC.CheckedChanged += new System.EventHandler(this.coverC_CheckedChanged);
@@ -142,7 +142,7 @@
             this.id3C.Location = new System.Drawing.Point(281, 68);
             this.id3C.Name = "id3C";
             this.id3C.Size = new System.Drawing.Size(62, 17);
-            this.id3C.TabIndex = 8;
+            this.id3C.TabIndex = 10;
             this.id3C.Text = "Set ID3";
             this.id3C.UseVisualStyleBackColor = true;
             // 
@@ -162,7 +162,7 @@
             this.titleL.Location = new System.Drawing.Point(53, 153);
             this.titleL.Name = "titleL";
             this.titleL.Size = new System.Drawing.Size(16, 13);
-            this.titleL.TabIndex = 11;
+            this.titleL.TabIndex = 13;
             this.titleL.Text = "   ";
             // 
             // artiseL
@@ -172,7 +172,7 @@
             this.artiseL.Location = new System.Drawing.Point(411, 153);
             this.artiseL.Name = "artiseL";
             this.artiseL.Size = new System.Drawing.Size(16, 13);
-            this.artiseL.TabIndex = 12;
+            this.artiseL.TabIndex = 14;
             this.artiseL.Text = "   ";
             // 
             // trackT
@@ -186,7 +186,7 @@
             this.trackT.ReadOnly = true;
             this.trackT.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.trackT.Size = new System.Drawing.Size(353, 150);
-            this.trackT.TabIndex = 13;
+            this.trackT.TabIndex = 15;
             // 
             // lyricC
             // 
@@ -196,7 +196,7 @@
             this.lyricC.Location = new System.Drawing.Point(345, 68);
             this.lyricC.Name = "lyricC";
             this.lyricC.Size = new System.Drawing.Size(68, 17);
-            this.lyricC.TabIndex = 14;
+            this.lyricC.TabIndex = 11;
             this.lyricC.Text = "Set lyrics";
             this.lyricC.UseVisualStyleBackColor = true;
             // 
@@ -215,7 +215,7 @@
             0});
             this.resizeSize.Name = "resizeSize";
             this.resizeSize.Size = new System.Drawing.Size(56, 20);
-            this.resizeSize.TabIndex = 15;
+            this.resizeSize.TabIndex = 9;
             this.resizeSize.Value = new decimal(new int[] {
             500,
             0,
@@ -228,7 +228,7 @@
             this.goB.Location = new System.Drawing.Point(495, 39);
             this.goB.Name = "goB";
             this.goB.Size = new System.Drawing.Size(75, 23);
-            this.goB.TabIndex = 17;
+            this.goB.TabIndex = 6;
             this.goB.Text = "&Go";
             this.goB.UseVisualStyleBackColor = true;
             this.goB.Click += new System.EventHandler(this.goB_Click);
@@ -242,7 +242,7 @@
             this.sts.Location = new System.Drawing.Point(0, 338);
             this.sts.Name = "sts";
             this.sts.Size = new System.Drawing.Size(584, 23);
-            this.sts.TabIndex = 18;
+            this.sts.TabIndex = 17;
             this.sts.Text = "sts";
             // 
             // tssL
@@ -253,7 +253,7 @@
             // tssDummy
             // 
             this.tssDummy.Name = "tssDummy";
-            this.tssDummy.Size = new System.Drawing.Size(367, 18);
+            this.tssDummy.Size = new System.Drawing.Size(336, 18);
             this.tssDummy.Spring = true;
             // 
             // tssP
@@ -287,9 +287,42 @@
             this.gbSort.Location = new System.Drawing.Point(55, 91);
             this.gbSort.Name = "gbSort";
             this.gbSort.Size = new System.Drawing.Size(288, 45);
-            this.gbSort.TabIndex = 20;
+            this.gbSort.TabIndex = 12;
             this.gbSort.TabStop = false;
             this.gbSort.Text = "Sort mode";
+            // 
+            // sortB
+            // 
+            this.sortB.Enabled = false;
+            this.sortB.Location = new System.Drawing.Point(202, 18);
+            this.sortB.Name = "sortB";
+            this.sortB.Size = new System.Drawing.Size(75, 23);
+            this.sortB.TabIndex = 3;
+            this.sortB.Text = "&Sort...";
+            this.sortB.UseVisualStyleBackColor = true;
+            this.sortB.Click += new System.EventHandler(this.sortB_Click);
+            // 
+            // sManuallyRs
+            // 
+            this.sManuallyRs.AutoSize = true;
+            this.sManuallyRs.Location = new System.Drawing.Point(129, 21);
+            this.sManuallyRs.Name = "sManuallyRs";
+            this.sManuallyRs.Size = new System.Drawing.Size(67, 17);
+            this.sManuallyRs.TabIndex = 2;
+            this.sManuallyRs.Text = "Manually";
+            this.sManuallyRs.UseVisualStyleBackColor = true;
+            this.sManuallyRs.CheckedChanged += new System.EventHandler(this.sManuallyRs_CheckedChanged);
+            // 
+            // sAutoRs
+            // 
+            this.sAutoRs.AutoSize = true;
+            this.sAutoRs.Location = new System.Drawing.Point(76, 21);
+            this.sAutoRs.Name = "sAutoRs";
+            this.sAutoRs.Size = new System.Drawing.Size(47, 17);
+            this.sAutoRs.TabIndex = 1;
+            this.sAutoRs.Text = "Auto";
+            this.sAutoRs.UseVisualStyleBackColor = true;
+            this.sAutoRs.CheckedChanged += new System.EventHandler(this.sAutoRs_CheckedChanged);
             // 
             // sNaturallyRs
             // 
@@ -303,39 +336,6 @@
             this.sNaturallyRs.Text = "Naturally";
             this.sNaturallyRs.UseVisualStyleBackColor = true;
             this.sNaturallyRs.CheckedChanged += new System.EventHandler(this.sNatuallyRs_CheckedChanged);
-            // 
-            // sAutoRs
-            // 
-            this.sAutoRs.AutoSize = true;
-            this.sAutoRs.Location = new System.Drawing.Point(76, 21);
-            this.sAutoRs.Name = "sAutoRs";
-            this.sAutoRs.Size = new System.Drawing.Size(47, 17);
-            this.sAutoRs.TabIndex = 1;
-            this.sAutoRs.Text = "Auto";
-            this.sAutoRs.UseVisualStyleBackColor = true;
-            this.sAutoRs.CheckedChanged += new System.EventHandler(this.sAutoRs_CheckedChanged);
-            // 
-            // sManuallyRs
-            // 
-            this.sManuallyRs.AutoSize = true;
-            this.sManuallyRs.Location = new System.Drawing.Point(129, 21);
-            this.sManuallyRs.Name = "sManuallyRs";
-            this.sManuallyRs.Size = new System.Drawing.Size(67, 17);
-            this.sManuallyRs.TabIndex = 2;
-            this.sManuallyRs.Text = "Manually";
-            this.sManuallyRs.UseVisualStyleBackColor = true;
-            this.sManuallyRs.CheckedChanged += new System.EventHandler(this.sManuallyRs_CheckedChanged);
-            // 
-            // sortB
-            // 
-            this.sortB.Enabled = false;
-            this.sortB.Location = new System.Drawing.Point(202, 18);
-            this.sortB.Name = "sortB";
-            this.sortB.Size = new System.Drawing.Size(75, 23);
-            this.sortB.TabIndex = 3;
-            this.sortB.Text = "&Sort...";
-            this.sortB.UseVisualStyleBackColor = true;
-            this.sortB.Click += new System.EventHandler(this.sortB_Click);
             // 
             // mainForm
             // 

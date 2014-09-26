@@ -102,6 +102,11 @@ namespace CoverGrabber
             this.id3C.Enabled = false;
             this.lyricC.Enabled = false;
             this.goB.Enabled = false;
+            this.sNaturallyRs.Enabled = false;
+            this.sAutoRs.Enabled = false;
+            this.sManuallyRs.Enabled = false;
+            this.sortB.Enabled = false;
+            
 
             this.bw.RunWorkerAsync(grabOptions);
         }
@@ -163,6 +168,10 @@ namespace CoverGrabber
             this.id3C.Enabled = true;
             this.lyricC.Enabled = true;
             this.goB.Enabled = true;
+            this.sNaturallyRs.Enabled = true;
+            this.sAutoRs.Enabled = true;
+            this.sManuallyRs.Enabled = true;
+            this.sortB.Enabled = this.sManuallyRs.Checked;
         }
 
         private void doGrab(BackgroundWorker Bw, object Options)
