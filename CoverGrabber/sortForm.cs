@@ -57,8 +57,11 @@ namespace CoverGrabber
         private void UpB_Click(object sender, EventArgs e)
         {
             this.fileLv.BeginUpdate();
-            if (this.fileLv.SelectedItems.Count != 0)
+
+
+            if (this.fileLv.SelectedItems.Count != 0 && this.fileLv.SelectedItems[0].Index > 0)
             {
+                
                 int i = this.fileLv.SelectedItems.Count - 1;
                 int j = this.fileLv.SelectedItems.Count - 1;
                 int newPos = this.fileLv.SelectedItems[0].Index - 1;
@@ -75,7 +78,8 @@ namespace CoverGrabber
         private void DownB_Click(object sender, EventArgs e)
         {
             this.fileLv.BeginUpdate();
-            if (this.fileLv.SelectedItems.Count != 0)
+
+            if (this.fileLv.SelectedItems.Count != 0 && this.fileLv.SelectedItems[0].Index < this.fileLv.Items.Count - 1)
             {
                 int i = 0;
                 int j = 0;
