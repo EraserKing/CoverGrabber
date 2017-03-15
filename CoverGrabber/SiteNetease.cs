@@ -2,129 +2,90 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
+using Newtonsoft.Json.Linq;
 
 namespace CoverGrabber
 {
     static class SiteNetease
     {
-        static public void InitializeRequest(ref HttpWebRequest Request, string Url)
+        static public void InitializeRequest(ref HttpWebRequest request, string url)
         {
-            Request.Method = "GET";
-            Request.Accept = "Accept: text/html";
-            Request.Headers.Set("Accept-Encoding", "deflate");
-            Request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
-            Request.Headers.Set("Cache-Control", "max-age=0");
-            Request.Referer = Url;
-            Request.Host = "music.163.com";
-            Request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
-            Request.CookieContainer = Utility.cookies;
+            request.Method = "GET";
+            request.Accept = "Accept: text/html";
+            request.Headers.Set("Accept-Encoding", "deflate");
+            request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+            request.Headers.Set("Cache-Control", "max-age=0");
+            request.Referer = url;
+            request.Host = "music.163.com";
+            request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
+            request.CookieContainer = Utility.Cookies;
         }
 
         /// <summary>
         /// Parse album page and get cover image URL
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Cover image URL</returns>
-        static public string ParseCoverAddress(HtmlDocument PageDocument)
+        static public string ParseCoverAddress(HtmlDocument pageDocument)
         {
-            HtmlNode coverAddressNode = PageDocument.DocumentNode.SelectSingleNode("//img[@class=\"j-img\"]");
-            if (coverAddressNode != null)
-            {
-                return (coverAddressNode.GetAttributeValue("data-src", ""));
-            }
-            else
-            {
-                return ("");
-            }
+            HtmlNode coverAddressNode = pageDocument.DocumentNode.SelectSingleNode("//img[@class=\"j-img\"]");
+            return coverAddressNode != null ? coverAddressNode.GetAttributeValue("data-src", "") : "";
         }
 
         /// <summary>
         /// Parse album page and return tracks list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
-        static public List<List<string>> ParseTrackList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackList(HtmlDocument pageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//tbody[@id=\"m-song-list-module\"]");
+            JArray trackNodes = JArray.Parse(HttpUtility.HtmlDecode(pageDocument.DocumentNode.SelectNodes("//div[@id=\"song-list-pre-cache\"]/textarea")[0].InnerText));
 
-            List<List<string>> dictList = new List<List<string>>();
-            for (int i = 1; i <= discNodes.Count; i++)
-            {
-                List<string> trackList = new List<string>();
-                string tempTracksXpath = "//tbody[@id=\"m-song-list-module\"]/tr/td[2]/div/div[1]/div/span/b/a";
-                HtmlNodeCollection trackNodes = PageDocument.DocumentNode.SelectNodes(tempTracksXpath);
-                for (int j = 0; j < trackNodes.Count; j++)
-                {
-                    // Since there may be <, >, etc. so need to decode
-                    trackList.Add(HttpUtility.HtmlDecode(trackNodes[j].GetAttributeValue("title", "")));
-                }
-                dictList.Add(trackList);
-            }
-            return (dictList);
+            List<string> trackList = trackNodes.Select(x => x["name"].Value<string>()).ToList();
+            List<List<string>> discList = new List<List<string>> { trackList };
+            return discList;
         }
 
         /// <summary>
         /// Parge album page and return track URLs list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//tbody[@id=\"m-song-list-module\"]");
+            JArray trackNodes = JArray.Parse(HttpUtility.HtmlDecode(pageDocument.DocumentNode.SelectNodes("//div[@id=\"song-list-pre-cache\"]/textarea")[0].InnerText));
 
-            List<List<string>> dictList = new List<List<string>>();
-            for (int i = 1; i <= discNodes.Count; i++)
-            {
-                List<string> trackUrlList = new List<string>();
-                string tempTrackUrlsXpath = "//tbody[@id=\"m-song-list-module\"]/tr/td[2]/div/div[1]/div/span/b/a";
-                HtmlNodeCollection trackUrlNodes = PageDocument.DocumentNode.SelectNodes(tempTrackUrlsXpath);
-                for (int j = 0; j < trackUrlNodes.Count; j++)
-                {
-                    string trackUrl = HttpUtility.HtmlDecode(trackUrlNodes[j].GetAttributeValue("href", ""));
-                    trackUrlList.Add(trackUrl);
-                }
-                dictList.Add(trackUrlList);
-            }
-            return (dictList);
+            List<string> trackList = trackNodes.Select(x => "http://music.163.com/song?id=" + x["id"].Value<string>()).ToList();
+            List<List<string>> discList = new List<List<string>> { trackList };
+            return discList;
         }
 
         /// <summary>
         /// Parse album page and return track artists list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//tbody[@id=\"m-song-list-module\"]");
-
-            List<List<string>> discList = new List<List<string>>();
-            for (int i = 1; i <= discNodes.Count; i++)
-            {
-                List<string> trackArtistList = new List<string>();
-                string tempTrackArtistsXpath = "//tbody[@id=\"m-song-list-module\"]/tr/td[4]/div/span/a";
-                HtmlNodeCollection trackArtistNodes = PageDocument.DocumentNode.SelectNodes(tempTrackArtistsXpath);
-                for (int j = 0; j < trackArtistNodes.Count; j++)
-                {
-                    string trackArtist = HttpUtility.HtmlDecode(trackArtistNodes[j].InnerText);
-                    trackArtistList.Add(trackArtist);
-                }
-                discList.Add(trackArtistList);
-            }
-            return (discList);
+            JArray trackNodes = JArray.Parse(HttpUtility.HtmlDecode(pageDocument.DocumentNode.SelectNodes("//div[@id=\"song-list-pre-cache\"]/textarea")[0].InnerText));
+            List<string> trackList = trackNodes.Select(x => JObject.Parse(x["artists"][0].ToString())["name"].Value<string>()).ToList();
+            List<List<string>> discList = new List<List<string>> { trackList };
+            return discList;
         }
 
         /// <summary>
         /// Parse track page and return lyric
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Lyric</returns>
-        static public string ParseTrackLyric(HtmlDocument PageDocument)
+        static public string ParseTrackLyric(HtmlDocument pageDocument)
         {
             string lyric = "";
-            HtmlNode lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"bd bd-open f-ib\"]");
+            HtmlNode lyricNode = pageDocument.DocumentNode.SelectSingleNode("//div[@id=\"lyric-content\"]");
 
             if (lyricNode != null)
             {
@@ -135,75 +96,46 @@ namespace CoverGrabber
                 lyric = lyric.Substring(0, lyric.Length - 3);
             }
 
-            //lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"flag_more\"]");
-
-            //if (lyricNode != null)
-            //{
-            //    lyric += lyricNode.InnerText.Trim();
-            //}
-
             if (lyric == "暂时没有歌词，求歌词" ||
                 lyric == "纯音乐，无歌词")
             {
                 lyric = "";
             }
-            return (HttpUtility.HtmlDecode(lyric));
+            return HttpUtility.HtmlDecode(lyric);
         }
 
         /// <summary>
         /// Parse album page and return title
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album title</returns>
-        static public string ParseAlbumTitle(HtmlDocument PageDocument)
+        static public string ParseAlbumTitle(HtmlDocument pageDocument)
         {
-            HtmlNode titleNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/div/div/h2");
-            if (titleNode != null)
-            {
-                string title = HttpUtility.HtmlDecode(titleNode.InnerText);
-                return (title);
-            }
-            else
-            {
-                return ("");
-            }
+            HtmlNode titleNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/div/div/h2");
+            return titleNode != null ? HttpUtility.HtmlDecode(titleNode.InnerText) : "";
         }
 
         /// <summary>
         /// Parse album page and return artist
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album artist</returns>
-        static public string ParseAlbumArtist(HtmlDocument PageDocument)
+        static public string ParseAlbumArtist(HtmlDocument pageDocument)
         {
-            HtmlNode artistNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/p[1]/span/a");
-            if (artistNode != null)
-            {
-                return (HttpUtility.HtmlDecode(artistNode.InnerText));
-            }
-            else
-            {
-                return ("");
-            }
+            HtmlNode artistNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/p[1]/span/a");
+            return artistNode != null ? HttpUtility.HtmlDecode(artistNode.InnerText) : "";
         }
 
         /// <summary>
         /// Parse album page and return year
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album year</returns>
-        static public uint ParseAlbumYear(HtmlDocument PageDocument)
+        static public uint ParseAlbumYear(HtmlDocument pageDocument)
         {
-            HtmlNode yearNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/p[2]");
-            if (yearNode != null)
-            {
-                return (UInt32.Parse(HttpUtility.HtmlDecode(yearNode.InnerHtml.Substring(yearNode.InnerHtml.IndexOf("</b>") + 4, 4))));
-            }
-            else
-            {
-                return (0);
-            }
+            HtmlNode yearNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/p[2]");
+            yearNode.SelectSingleNode("b").Remove();
+            return yearNode != null ? uint.Parse(HttpUtility.HtmlDecode(yearNode.InnerText.Substring(0, 4))) : 0;
         }
-
     }
 }

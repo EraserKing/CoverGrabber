@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
@@ -10,236 +11,189 @@ namespace CoverGrabber
 {
     static class SiteXiami
     {
-        static public void InitializeRequest(ref HttpWebRequest Request, string Url)
+        static public void InitializeRequest(ref HttpWebRequest request, string url)
         {
-            Request.Method = "GET";
-            Request.Accept = "Accept: text/html";
-            Request.Headers.Set("Accept-Encoding", "deflate");
-            Request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
-            Request.Headers.Set("Cache-Control", "max-age=0");
-            Request.Referer = Url;
-            Request.Host = "www.xiami.com";
-            Request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
-            Request.CookieContainer = Utility.cookies;
+            request.Method = "GET";
+            request.Accept = "Accept: text/html";
+            request.Headers.Set("Accept-Encoding", "deflate");
+            request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+            request.Headers.Set("Cache-Control", "max-age=0");
+            request.Referer = url;
+            request.Host = "www.xiami.com";
+            request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
+            request.CookieContainer = Utility.Cookies;
         }
 
         /// <summary>
         /// Parse album page and get cover image URL
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Cover image URL</returns>
-        static public string ParseCoverAddress(HtmlDocument PageDocument)
+        static public string ParseCoverAddress(HtmlDocument pageDocument)
         {
-            HtmlNode coverAddressNode = PageDocument.DocumentNode.SelectSingleNode("//a[@id=\"cover_lightbox\"]");
-            if (coverAddressNode != null)
-            {
-                return (coverAddressNode.GetAttributeValue("href", ""));
-            }
-            else
-            {
-                return ("");
-            }
+            HtmlNode coverAddressNode = pageDocument.DocumentNode.SelectSingleNode("//a[@id=\"cover_lightbox\"]");
+            return coverAddressNode != null ? coverAddressNode.GetAttributeValue("href", "") : "";
         }
 
         /// <summary>
         /// Parse album page and return tracks list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
-        static public List<List<string>> ParseTrackList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackList(HtmlDocument pageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
+            HtmlNodeCollection discNodes = pageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
             List<List<string>> dictList = new List<List<string>>();
             for (int i = 1; i <= discNodes.Count; i++)
             {
-                List<string> trackList = new List<string>();
-                string tempTracksXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]/a[1]";
-                HtmlNodeCollection trackNodes = PageDocument.DocumentNode.SelectNodes(tempTracksXpath);
-                for (int j = 0; j < trackNodes.Count; j++)
-                {
-                    // Since there may be <, >, etc. so need to decode
-                    trackList.Add(HttpUtility.HtmlDecode(trackNodes[j].InnerText));
-                }
+                string tempTracksXpath = $"//table[@class=\"track_list\"][{i}]/tbody/tr/td[3]/a[1]";
+                HtmlNodeCollection trackNodes = pageDocument.DocumentNode.SelectNodes(tempTracksXpath);
+                // Since there may be <, >, etc. so need to decode
+                List<string> trackList = trackNodes.Select(t => HttpUtility.HtmlDecode(t.InnerText)).ToList();
                 dictList.Add(trackList);
             }
-            return (dictList);
+            return dictList;
         }
 
         /// <summary>
         /// Parge album page and return track URLs list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
+            HtmlNodeCollection discNodes = pageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
             List<List<string>> dictList = new List<List<string>>();
             for (int i = 1; i <= discNodes.Count; i++)
             {
-                List<string> trackUrlList = new List<string>();
-                string tempTrackUrlsXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]/a[1]";
-                HtmlNodeCollection trackUrlNodes = PageDocument.DocumentNode.SelectNodes(tempTrackUrlsXpath);
-                for (int j = 0; j < trackUrlNodes.Count; j++)
-                {
-                    string trackUrl = HttpUtility.HtmlDecode(trackUrlNodes[j].GetAttributeValue("href", ""));
-                    trackUrlList.Add(trackUrl);
-                }
+                string tempTrackUrlsXpath = $"//table[@class=\"track_list\"][{i}]/tbody/tr/td[3]/a[1]";
+                HtmlNodeCollection trackUrlNodes = pageDocument.DocumentNode.SelectNodes(tempTrackUrlsXpath);
+                List<string> trackUrlList = trackUrlNodes.Select(t => "http://" + HttpUtility.HtmlDecode(t.GetAttributeValue("href", ""))).ToList();
                 dictList.Add(trackUrlList);
             }
-            return (dictList);
+            return dictList;
         }
 
         /// <summary>
         /// Parse album page and return track artists list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument)
         {
-            HtmlNodeCollection discNodes = PageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
+            HtmlNodeCollection discNodes = pageDocument.DocumentNode.SelectNodes("//strong[@class=\"trackname\"]");
 
             List<List<string>> discList = new List<List<string>>();
             for (int i = 1; i <= discNodes.Count; i++)
             {
                 List<string> trackArtistList = new List<string>();
-                string tempTrackArtistsXpath = "//table[@class=\"track_list\"][" + i.ToString() + "]/tbody/tr/td[3]";
-                HtmlNodeCollection trackArtistNodes = PageDocument.DocumentNode.SelectNodes(tempTrackArtistsXpath);
-                for (int j = 0; j < trackArtistNodes.Count; j++)
+                string tempTrackArtistsXpath = $"//table[@class=\"track_list\"][{i}]/tbody/tr/td[3]";
+                HtmlNodeCollection trackArtistNodes = pageDocument.DocumentNode.SelectNodes(tempTrackArtistsXpath);
+                foreach (HtmlNode trackArtistNode in trackArtistNodes)
                 {
-                    /* The format may be
-                     * <a href = "***">Original name</a>
-                     * Track Artist
-                     * <a href = "***">Translated name</a>
-                     * */
-                    string artistName = HttpUtility.HtmlDecode(trackArtistNodes[j].InnerHtml);
-                    int tempPost = artistName.IndexOf("</a>");
-                    if (tempPost != -1)
-                    {
-                        artistName = artistName.Substring(tempPost + 4);
-                    }
-                    tempPost = artistName.IndexOf("<a ");
-                    if (tempPost != -1)
-                    {
-                        artistName = artistName.Substring(0, tempPost);
-                    }
-                    trackArtistList.Add(artistName.Trim());
+                    trackArtistNode.SelectSingleNode("a").Remove();
+                    trackArtistList.Add(trackArtistNode.InnerText.Trim());
                 }
                 discList.Add(trackArtistList);
             }
-            return (discList);
+            return discList;
         }
 
         /// <summary>
         /// Parse track page and return lyric
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Lyric</returns>
-        static public string ParseTrackLyric(HtmlDocument PageDocument)
+        static public string ParseTrackLyric(HtmlDocument pageDocument)
         {
             string lyric = "";
-            HtmlNode lyricNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"lrc_main\"]");
+            HtmlNode lyricNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"lrc_main\"]");
 
             if (lyricNode != null)
             {
                 lyric = lyricNode.InnerText.Trim();
             }
-            return (HttpUtility.HtmlDecode(lyric));
+            return HttpUtility.HtmlDecode(lyric);
         }
 
         /// <summary>
         /// Parse album page and return title
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album title</returns>
-        static public string ParseAlbumTitle(HtmlDocument PageDocument)
+        static public string ParseAlbumTitle(HtmlDocument pageDocument)
         {
-            HtmlNode titleNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"title\"]/h1");
+            HtmlNode titleNode = pageDocument.DocumentNode.SelectSingleNode("//div[@id=\"title\"]/h1");
             if (titleNode != null)
             {
-                string title = HttpUtility.HtmlDecode(titleNode.InnerHtml);
-                if (title.IndexOf("<span>") != -1)
-                {
-                    title = title.Substring(0, title.IndexOf("<span>"));
-                }
-                return (title);
+                titleNode.SelectSingleNode("span").Remove();
+                return titleNode.InnerText;
             }
             else
             {
-                return ("");
+                return "";
             }
         }
 
         /// <summary>
         /// Parse album page and return artist
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album artist</returns>
-        static public string ParseAlbumArtist(HtmlDocument PageDocument)
+        static public string ParseAlbumArtist(HtmlDocument pageDocument)
         {
-            HtmlNode artistNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[1]/td[2]/a");
-            if (artistNode != null)
-            {
-                return (HttpUtility.HtmlDecode(artistNode.InnerText));
-            }
-            else
-            {
-                return ("");
-            }
+            HtmlNode artistNode = pageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[1]/td[2]/a");
+            return artistNode != null ? HttpUtility.HtmlDecode(artistNode.InnerText) : "";
         }
 
         /// <summary>
         /// Parse album page and return year
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album year</returns>
-        static public uint ParseAlbumYear(HtmlDocument PageDocument)
+        static public uint ParseAlbumYear(HtmlDocument pageDocument)
         {
-            HtmlNode yearNode = PageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[4]/td[2]");
-            if (yearNode != null)
-            {
-                return (UInt32.Parse(HttpUtility.HtmlDecode(yearNode.InnerText).Substring(0, 4)));
-            }
-            else
-            {
-                return (0);
-            }
+            HtmlNode yearNode = pageDocument.DocumentNode.SelectSingleNode("//div[@id=\"album_info\"]/table/tr[4]/td[2]");
+            return yearNode != null ? (uint.Parse(HttpUtility.HtmlDecode(yearNode.InnerText).Substring(0, 4))) : 0;
         }
 
         /// <summary>
         /// Get verify code (appears if getting page too fast)
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Struct which stores all four necessary parameters for verify code, plus local verify image code address</returns>
-        static public VerifyCode GetVerifyCode(HtmlDocument PageDocument)
+        static public VerifyCode GetVerifyCode(HtmlDocument pageDocument)
         {
-            string localVerifyCode = System.IO.Path.GetTempFileName() + ".jpg";
-            HtmlNode codeNode = PageDocument.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]");
+            string localVerifyCode = Path.GetTempFileName() + ".jpg";
+            HtmlNode codeNode = pageDocument.DocumentNode.SelectSingleNode("//img[@id=\"J_CheckCode\"]");
             Utility.DownloadFile(codeNode.GetAttributeValue("src", ""), localVerifyCode);
-            VerifyCode verifyCode = new VerifyCode();
-            verifyCode.code = "";
-            verifyCode.sessionID = PageDocument.DocumentNode.SelectSingleNode("//input[@name=\"sessionID\"]").GetAttributeValue("value", "");
-            verifyCode.apply = PageDocument.DocumentNode.SelectSingleNode("//input[@name=\"apply\"]").GetAttributeValue("value", "");
-            verifyCode.referer = PageDocument.DocumentNode.SelectSingleNode("//input[@name=\"referer\"]").GetAttributeValue("value", "");
-            verifyCode.localVerifyCode = localVerifyCode;
+            VerifyCode verifyCode = new VerifyCode
+            {
+                Code = "",
+                SessionId = pageDocument.DocumentNode.SelectSingleNode("//input[@name=\"sessionID\"]").GetAttributeValue("value", ""),
+                Apply = pageDocument.DocumentNode.SelectSingleNode("//input[@name=\"apply\"]").GetAttributeValue("value", ""),
+                Referer = pageDocument.DocumentNode.SelectSingleNode("//input[@name=\"referer\"]").GetAttributeValue("value", ""),
+                LocalVerifyCode = localVerifyCode
+            };
             return (verifyCode);
         }
 
         /// <summary>
         /// Post verify code
         /// </summary>
-        /// <param name="VerifyData">The struct which contains all four necessary parameters</param>
+        /// <param name="verifyData">The struct which contains all four necessary parameters</param>
         /// <returns>The page after posting as Document</returns>
-        static public HtmlDocument PostVerifyCode(VerifyCode VerifyData)
+        static public HtmlDocument PostVerifyCode(VerifyCode verifyData)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://www.xiami.com/alisec/captcha/tmdgetv3.php");
 
             StringBuilder postData = new StringBuilder();
-            postData.Append("apply=" + HttpUtility.UrlEncode(VerifyData.apply) + "&");
-            postData.Append("code=" + HttpUtility.UrlEncode(VerifyData.code) + "&");
-            postData.Append("referer=" + HttpUtility.UrlEncode(VerifyData.referer) + "&");
-            postData.Append("sessionID=" + HttpUtility.UrlEncode(VerifyData.sessionID));
+            postData.Append("apply=" + HttpUtility.UrlEncode(verifyData.Apply) + "&");
+            postData.Append("code=" + HttpUtility.UrlEncode(verifyData.Code) + "&");
+            postData.Append("referer=" + HttpUtility.UrlEncode(verifyData.Referer) + "&");
+            postData.Append("sessionID=" + HttpUtility.UrlEncode(verifyData.SessionId));
 
             ASCIIEncoding ascii = new ASCIIEncoding();
             byte[] postBytes = ascii.GetBytes(postData.ToString());
@@ -251,19 +205,18 @@ namespace CoverGrabber
             request.Headers.Set("Accept-Encoding", "deflate");
             request.Headers.Set("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
             request.Host = "www.xiami.com";
-            request.Referer = VerifyData.referer;
+            request.Referer = verifyData.Referer;
             request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
-            request.CookieContainer = Utility.cookies;
+            request.CookieContainer = Utility.Cookies;
 
             Stream postStream = request.GetRequestStream();
             postStream.Write(postBytes, 0, postBytes.Length);
 
-            Stream responseStream;
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            responseStream = response.GetResponseStream();
+            Stream responseStream = response.GetResponseStream();
             StreamReader responseReader = new StreamReader(responseStream, Encoding.UTF8, true);
 
-            Utility.cookies.Add(response.Cookies);
+            Utility.Cookies.Add(response.Cookies);
 
             string responseText = responseReader.ReadToEnd();
 
@@ -276,7 +229,7 @@ namespace CoverGrabber
         /// The 403 Forbidden page from Xiami indicates some modification to cookies. Do as suggested.
         /// </summary>
         /// <param name="exceptionText">The error message from the page</param>
-        static public void handleXiamiForbidden(string exceptionText)
+        static public void HandleXiamiForbidden(string exceptionText)
         {
             // The exception text is like "aaa=xxx;bbb=yyy;ccc=zzz".
             exceptionText = exceptionText.Substring(exceptionText.IndexOf("document.cookie=") + 17);
@@ -288,9 +241,11 @@ namespace CoverGrabber
                 string newCookieName = newCookie.Substring(0, newCookie.IndexOf("="));
                 string newCookieValue = newCookie.Substring(newCookie.IndexOf("=") + 1);
 
-                Cookie tempCookie = new Cookie(newCookieName, newCookieValue);
-                tempCookie.Domain = "www.xiami.com";
-                Utility.cookies.Add(tempCookie);
+                Cookie tempCookie = new Cookie(newCookieName, newCookieValue)
+                {
+                    Domain = "www.xiami.com"
+                };
+                Utility.Cookies.Add(tempCookie);
             }
 
         }

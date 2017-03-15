@@ -9,22 +9,22 @@ namespace CoverGrabber
 {
     public struct GrabOptions
     {
-        public string localFolder;
-        public string webPageUrl;
-        public bool needCover;
-        public int resizeSize;
-        public bool needId3;
-        public bool needLyric;
-        public string sortMode;
-        public Sites site;
-        public List<string> fileList;
+        public string LocalFolder;
+        public string WebPageUrl;
+        public bool NeedCover;
+        public int ResizeSize;
+        public bool NeedId3;
+        public bool NeedLyric;
+        public string SortMode;
+        public Sites Site;
+        public List<string> FileList;
     }
 
     public struct ProgressOptions
     {
-        public string statusMessage;
-        public ProgressReportObject objectName;
-        public string objectValue;
+        public string StatusMessage;
+        public ProgressReportObject ObjectName;
+        public string ObjectValue;
     }
 
     public struct Id3

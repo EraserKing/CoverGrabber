@@ -12,27 +12,27 @@ namespace CoverGrabber
 {
     static class SiteMusicBrainz
     {
-        static public void InitializeRequest(ref HttpWebRequest Request, string Url)
+        static public void InitializeRequest(ref HttpWebRequest request, string url)
         {
-            Request.Method = "GET";
-            Request.Accept = "Accept: text/html";
-            Request.Headers.Set("Accept-Encoding", "deflate");
-            Request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
-            Request.Headers.Set("Cache-Control", "max-age=0");
-            Request.Referer = Url;
-            Request.Host = "musicbrainz.org";
-            Request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
-            Request.CookieContainer = Utility.cookies;
+            request.Method = "GET";
+            request.Accept = "Accept: text/html";
+            request.Headers.Set("Accept-Encoding", "deflate");
+            request.Headers.Set("Accept-Language", "Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+            request.Headers.Set("Cache-Control", "max-age=0");
+            request.Referer = url;
+            request.Host = "musicbrainz.org";
+            request.UserAgent = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0";
+            request.CookieContainer = Utility.Cookies;
         }
 
         /// <summary>
         /// Parse album page and get cover image URL
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Cover image URL</returns>
-        static public string ParseCoverAddress(HtmlDocument PageDocument)
+        static public string ParseCoverAddress(HtmlDocument pageDocument)
         {
-            HtmlNode coverAddressNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"cover-art\"]/img");
+            HtmlNode coverAddressNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"cover-art\"]/img");
             if (coverAddressNode != null)
             {
                 return (coverAddressNode.GetAttributeValue("src", ""));
@@ -46,11 +46,11 @@ namespace CoverGrabber
         /// <summary>
         /// Parse album page and return tracks list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
-        static public List<List<string>> ParseTrackList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackList(HtmlDocument pageDocument)
         {
-            JObject jsonRoot = getJsonContent(PageDocument);
+            JObject jsonRoot = GetJsonContent(pageDocument);
 
             JArray discNodes = (JArray)jsonRoot["mediums"];
 
@@ -74,11 +74,11 @@ namespace CoverGrabber
         /// <summary>
         /// Parge album page and return track URLs list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument)
         {
-            JObject jsonRoot = getJsonContent(PageDocument);
+            JObject jsonRoot = GetJsonContent(pageDocument);
 
             JArray discNodes = (JArray)jsonRoot["mediums"];
 
@@ -102,11 +102,11 @@ namespace CoverGrabber
         /// <summary>
         /// Parse album page and return track artists list
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        static public List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument)
+        static public List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument)
         {
-            JObject jsonRoot = getJsonContent(PageDocument);
+            JObject jsonRoot = GetJsonContent(pageDocument);
 
             JArray discNodes = (JArray)jsonRoot["mediums"];
 
@@ -130,9 +130,9 @@ namespace CoverGrabber
         /// <summary>
         /// Parse track page and return lyric
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Lyric</returns>
-        static public string ParseTrackLyric(HtmlDocument PageDocument)
+        static public string ParseTrackLyric(HtmlDocument pageDocument)
         {
             return ("");
         }
@@ -140,11 +140,11 @@ namespace CoverGrabber
         /// <summary>
         /// Parse album page and return title
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album title</returns>
-        static public string ParseAlbumTitle(HtmlDocument PageDocument)
+        static public string ParseAlbumTitle(HtmlDocument pageDocument)
         {
-            HtmlNode titleNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"releaseheader\"]/h1/a/bdi");
+            HtmlNode titleNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"releaseheader\"]/h1/a/bdi");
             if (titleNode != null)
             {
                 return (titleNode.InnerText);
@@ -158,11 +158,11 @@ namespace CoverGrabber
         /// <summary>
         /// Parse album page and return artist
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album artist</returns>
-        static public string ParseAlbumArtist(HtmlDocument PageDocument)
+        static public string ParseAlbumArtist(HtmlDocument pageDocument)
         {
-            HtmlNode artistNode = PageDocument.DocumentNode.SelectSingleNode("//div[@class=\"releaseheader\"]/p/a/bdi");
+            HtmlNode artistNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"releaseheader\"]/p/a/bdi");
             if (artistNode != null)
             {
                 return (HttpUtility.HtmlDecode(artistNode.InnerText));
@@ -176,11 +176,11 @@ namespace CoverGrabber
         /// <summary>
         /// Parse album page and return year
         /// </summary>
-        /// <param name="PageDocument">Page as document</param>
+        /// <param name="pageDocument">Page as document</param>
         /// <returns>Album year</returns>
-        static public uint ParseAlbumYear(HtmlDocument PageDocument)
+        static public uint ParseAlbumYear(HtmlDocument pageDocument)
         {
-            HtmlNode yearNode = PageDocument.DocumentNode.SelectSingleNode("//span[@class=\"release-date\"][1]");
+            HtmlNode yearNode = pageDocument.DocumentNode.SelectSingleNode("//span[@class=\"release-date\"][1]");
             if (yearNode != null)
             {
                 return (UInt32.Parse(HttpUtility.HtmlDecode(yearNode.InnerText).Substring(0, 4)));
@@ -191,9 +191,9 @@ namespace CoverGrabber
             }
         }
 
-        static private JObject getJsonContent(HtmlDocument PageDocument)
+        static private JObject GetJsonContent(HtmlDocument pageDocument)
         {
-            string fullPageContent = PageDocument.DocumentNode.InnerHtml;
+            string fullPageContent = pageDocument.DocumentNode.InnerHtml;
             string jsonContent = fullPageContent.Substring(fullPageContent.IndexOf("MB.Release.init(") + "MB.Release.init(".Length);
             jsonContent = jsonContent.Substring(0, jsonContent.IndexOf("</script>")).Trim();
             jsonContent = jsonContent.Substring(0, jsonContent.LastIndexOf(")")).Trim();

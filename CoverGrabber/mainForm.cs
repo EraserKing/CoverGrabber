@@ -64,29 +64,29 @@ namespace CoverGrabber
         private void goB_Click(object sender, EventArgs e)
         {
             GrabOptions options = new GrabOptions();
-            options.site = Sites.Null;
-            options.localFolder = this.folder.Text;
-            options.webPageUrl = this.url.Text;
-            options.needCover = this.coverC.Checked;
-            options.resizeSize = (int)this.resizeSize.Value;
-            options.needId3 = this.id3C.Checked;
-            options.needLyric = this.lyricC.Checked;
+            options.Site = Sites.Null;
+            options.LocalFolder = this.folder.Text;
+            options.WebPageUrl = this.url.Text;
+            options.NeedCover = this.coverC.Checked;
+            options.ResizeSize = (int)this.resizeSize.Value;
+            options.NeedId3 = this.id3C.Checked;
+            options.NeedLyric = this.lyricC.Checked;
             if (this.sAutoRs.Checked)
             {
-                options.sortMode = "Auto";
+                options.SortMode = "Auto";
             }
             else if (this.sNaturallyRs.Checked)
             {
-                options.sortMode = "Naturally";
+                options.SortMode = "Naturally";
             }
             else if (this.sManuallyRs.Checked)
             {
-                options.sortMode = "Manually";
+                options.SortMode = "Manually";
             }
-            options.fileList = this.sortedFileList;
+            options.FileList = this.sortedFileList;
 
             this.InitializeEnvironment(ref options);
-            if (options.site == Sites.Null)
+            if (options.Site == Sites.Null)
             {
                 MessageBox.Show("Not supported site.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -113,7 +113,7 @@ namespace CoverGrabber
 
         private void bw_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         {
-            this.doGrab(this.bw, e.Argument);
+            this.DoGrab(this.bw, e.Argument);
         }
 
         private void bw_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
@@ -121,28 +121,28 @@ namespace CoverGrabber
             this.tssP.Value = e.ProgressPercentage;
             ProgressOptions progressOptions = (ProgressOptions)e.UserState;
 
-            this.tssL.Text = progressOptions.statusMessage;
+            this.tssL.Text = progressOptions.StatusMessage;
 
-            switch (progressOptions.objectName)
+            switch (progressOptions.ObjectName)
             {
                 case (ProgressReportObject.AlbumTitle):
                     {
-                        this.titleL.Text = progressOptions.objectValue;
+                        this.titleL.Text = progressOptions.ObjectValue;
                         break;
                     }
                 case (ProgressReportObject.AlbumArtist):
                     {
-                        this.artiseL.Text = progressOptions.objectValue;
+                        this.artiseL.Text = progressOptions.ObjectValue;
                         break;
                     }
                 case (ProgressReportObject.AlbumCover):
                     {
-                        this.coverP.ImageLocation = progressOptions.objectValue;
+                        this.coverP.ImageLocation = progressOptions.ObjectValue;
                         break;
                     }
                 case (ProgressReportObject.Text):
                     {
-                        this.trackT.AppendText(progressOptions.objectValue);
+                        this.trackT.AppendText(progressOptions.ObjectValue);
                         break;
                     }
                 case (ProgressReportObject.TextClear):
@@ -152,7 +152,7 @@ namespace CoverGrabber
                     }
                 case (ProgressReportObject.VerifyCode):
                     {
-                        this.verifyCodeP.ImageLocation = progressOptions.objectValue;
+                        this.verifyCodeP.ImageLocation = progressOptions.ObjectValue;
                         break;
                     }
             }
@@ -174,7 +174,7 @@ namespace CoverGrabber
             this.sortB.Enabled = this.sManuallyRs.Checked;
         }
 
-        private void doGrab(BackgroundWorker Bw, object Options)
+        private void DoGrab(BackgroundWorker Bw, object Options)
         {
             GrabOptions options = (GrabOptions)Options;
             HtmlAgilityPack.HtmlDocument albumPage;
@@ -184,6 +184,7 @@ namespace CoverGrabber
             uint albumYear = 0;
 
             List<List<string>> trackNamesByDiscs = new List<List<string>>();
+            List<List<string>> trackUrlListByDiscs = new List<List<string>>();
             List<List<string>> artistNamesByDiscs = new List<List<string>>();
             List<List<string>> lyricsByDiscs = new List<List<string>>();
             List<string> fileList = new List<string>();
@@ -198,7 +199,7 @@ namespace CoverGrabber
 
             #region Preparion work
             CleanProgress(Bw);
-            if (!options.needCover && !options.needId3 && !options.needLyric)
+            if (!options.NeedCover && !options.NeedId3 && !options.NeedLyric)
             {
                 MessageBox.Show("You haven't pick any task.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -209,13 +210,13 @@ namespace CoverGrabber
             SetProgress(Bw, 0, "Getting information for local tracks...", ProgressReportObject.Skip, "");
             try
             {
-                if (options.sortMode == "Auto" || options.sortMode == "Naturally")
+                if (options.SortMode == "Auto" || options.SortMode == "Naturally")
                 {
-                    fileList = GenerateFileList(options.localFolder);
+                    fileList = GenerateFileList(options.LocalFolder);
                 }
-                else if (options.sortMode == "Manually")
+                else if (options.SortMode == "Manually")
                 {
-                    fileList = options.fileList;
+                    fileList = options.FileList;
                 }
             }
             catch (DirectoryNotFoundException e)
@@ -230,11 +231,11 @@ namespace CoverGrabber
             SetProgress(Bw, 10, "Getting remote page information...", ProgressReportObject.Skip, "");
             try
             {
-                albumPage = Utility.DownloadPage(options.webPageUrl, options.site);
+                albumPage = Utility.DownloadPage(options.WebPageUrl, options.Site);
             }
             catch (Exception e)
             {
-                MessageBox.Show("Accessing album page " + options.webPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Accessing album page " + options.WebPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
                 return;
             }
@@ -248,7 +249,7 @@ namespace CoverGrabber
             }
             catch (Exception e)
             {
-                MessageBox.Show("Parsing track lists from " + options.webPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Parsing track lists from " + options.WebPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
                 return;
             }
@@ -262,14 +263,14 @@ namespace CoverGrabber
             localTrackQuantity = fileList.Count;
             if (remoteTrackQuantity != localTrackQuantity)
             {
-                MessageBox.Show("You have " + localTrackQuantity.ToString() + " tracks in local folder(s), but " + remoteTrackQuantity.ToString() + " tracks on album page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You have " + localTrackQuantity + " tracks in local folder(s), but " + remoteTrackQuantity + " tracks on album page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress(Bw);
                 return;
             }
             #endregion
 
             #region Generate file list in auto sort mode
-            if (options.sortMode == "Auto")
+            if (options.SortMode == "Auto")
             {
                 bool ifValid;
                 Dictionary<string, Tuple<int, int>> localToRemoteMap;
@@ -321,13 +322,13 @@ namespace CoverGrabber
             #endregion
 
             #region Get cover
-            if (options.needCover)
+            if (options.NeedCover)
             {
                 SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.Skip, "");
                 try
                 {
                     string largeCoverUrl = this.parseCoverAddress(albumPage);
-                    smallTempFile = Utility.GenerateCover(largeCoverUrl, options.resizeSize);
+                    smallTempFile = Utility.GenerateCover(largeCoverUrl, options.ResizeSize);
                 }
                 catch (Exception e)
                 {
@@ -340,13 +341,14 @@ namespace CoverGrabber
             #endregion
 
             #region Get ID3
-            if (options.needId3)
+            if (options.NeedId3)
             {
                 SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.Skip, "");
                 try
                 {
                     SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.TextClear, "");
 
+                    trackUrlListByDiscs = this.parseTrackUrlList(albumPage);
                     artistNamesByDiscs = this.parseTrackArtistList(albumPage);
                     foreach (var trackList in trackNamesByDiscs)
                     {
@@ -372,13 +374,12 @@ namespace CoverGrabber
             #endregion
 
             #region Get lyrics
-            if (options.needLyric)
+            if (options.NeedLyric)
             {
                 SetProgress(Bw, 50, "Getting lyrics...", ProgressReportObject.Skip, "");
 
                 currentTrackIndex = 0;
-                List<List<string>> trackUrlListByDiscs = this.parseTrackUrlList(albumPage);
-
+                
                 foreach (var trackUrlInDisc in trackUrlListByDiscs)
                 {
                     List<string> lyricInDisc = new List<string>();
@@ -387,27 +388,27 @@ namespace CoverGrabber
                         try
                         {
                             string lyric = "";
-                            SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Skip, "");
+                            SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1) + "...", ProgressReportObject.Skip, "");
 
                             if (trackUrl != "")
                             {
-                                switch (options.site)
+                                switch (options.Site)
                                 {
                                     case (Sites.Xiami):
                                         {
-                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl, options.site));
+                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl, options.Site));
                                             break;
                                         }
                                     case (Sites.Netease):
                                         {
-                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://music.163.com" + trackUrl, options.site));
+                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://music.163.com" + trackUrl, options.Site));
                                             break;
                                         }
                                 }
                                 if (lyric != "")
                                 {
-                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1).ToString() + ":\n");
-                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1).ToString() + "...", ProgressReportObject.Text, lyric.Split("\n".ToCharArray())[0]);
+                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1) + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1) + ":\n");
+                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1) + "...", ProgressReportObject.Text, lyric.Split("\n".ToCharArray())[0]);
                                 }
                                 System.Threading.Thread.Sleep(500);
                             }
@@ -416,7 +417,7 @@ namespace CoverGrabber
                         }
                         catch (Exception e)
                         {
-                            MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1).ToString() + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1) + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             CleanProgress(Bw);
                             return;
                         }
@@ -435,13 +436,13 @@ namespace CoverGrabber
             {
                 for (int j = 0; j < trackNamesByDiscs[i].Count; j++)
                 {
-                    SetProgress(Bw, 90 + (int)(10.0 * currentTrackIndex / localTrackQuantity), "Writing track " + (currentTrackIndex + 1).ToString() + " ...", ProgressReportObject.Skip, "");
+                    SetProgress(Bw, 90 + (int)(10.0 * currentTrackIndex / localTrackQuantity), "Writing track " + (currentTrackIndex + 1) + " ...", ProgressReportObject.Skip, "");
 
                     try
                     {
                         Id3 id3 = new Id3();
 
-                        if (options.needId3)
+                        if (options.NeedId3)
                         {
                             id3.AlbumTitle = albumTitle;
                             id3.AlbumArtists = albumArtistName.Split(";".ToCharArray());
@@ -453,12 +454,12 @@ namespace CoverGrabber
                             id3.Performers = (artistNamesByDiscs[i][j] != "" ? artistNamesByDiscs[i][j] : albumArtistName).Split(";".ToCharArray());
                             id3.Year = albumYear;
                         }
-                        if (options.needCover)
+                        if (options.NeedCover)
                         {
                             id3.CoverImageList = new List<Picture>();
                             id3.CoverImageList.Add(new Picture(smallTempFile));
                         }
-                        if (options.needLyric)
+                        if (options.NeedLyric)
                         {
                             id3.Lyrics = lyricsByDiscs[i][j];
                         }
@@ -467,7 +468,7 @@ namespace CoverGrabber
                     }
                     catch (Exception e)
                     {
-                        MessageBox.Show("Writing information for track " + (currentTrackIndex + 1).ToString() + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Writing information for track " + (currentTrackIndex + 1) + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         CleanProgress(Bw);
                         break;
                     }
@@ -482,12 +483,12 @@ namespace CoverGrabber
             #endregion
         }
 
-        private static void SetProgress(BackgroundWorker Bw, int Progress, string StatusMessage, ProgressReportObject ObjectName, string ObjectValue)
+        private static void SetProgress(BackgroundWorker Bw, int Progress, string statusMessage, ProgressReportObject objectName, string objectValue)
         {
             ProgressOptions progressOptions = new ProgressOptions();
-            progressOptions.statusMessage = StatusMessage;
-            progressOptions.objectName = ObjectName;
-            progressOptions.objectValue = ObjectValue;
+            progressOptions.StatusMessage = statusMessage;
+            progressOptions.ObjectName = objectName;
+            progressOptions.ObjectValue = objectValue;
             Bw.ReportProgress(Progress, progressOptions);
         }
 
@@ -525,9 +526,9 @@ namespace CoverGrabber
 
         private void InitializeEnvironment(ref GrabOptions grabOptions)
         {
-            if (grabOptions.webPageUrl.StartsWith(@"http://www.xiami.com/album/"))
+            if (grabOptions.WebPageUrl.StartsWith(@"http://www.xiami.com/album/"))
             {
-                grabOptions.site = Sites.Xiami;
+                grabOptions.Site = Sites.Xiami;
                 this.parseCoverAddress = SiteXiami.ParseCoverAddress;
                 this.parseTrackList = SiteXiami.ParseTrackList;
                 this.parseTrackUrlList = SiteXiami.ParseTrackUrlList;
@@ -539,11 +540,11 @@ namespace CoverGrabber
                 return;
             }
 
-            if (grabOptions.webPageUrl.StartsWith(@"http://music.163.com/"))
+            if (grabOptions.WebPageUrl.StartsWith(@"http://music.163.com/"))
             {
-                grabOptions.site = Sites.Netease;
+                grabOptions.Site = Sites.Netease;
                 // Rename http://music.163.com/#/album?id=76460 to http://music.163.com/album?id=76460, otherwise it doesn't work
-                grabOptions.webPageUrl = grabOptions.webPageUrl.Replace("/#/", "/");
+                grabOptions.WebPageUrl = grabOptions.WebPageUrl.Replace("/#/", "/");
                 this.parseCoverAddress = SiteNetease.ParseCoverAddress;
                 this.parseTrackList = SiteNetease.ParseTrackList;
                 this.parseTrackUrlList = SiteNetease.ParseTrackUrlList;
@@ -555,9 +556,9 @@ namespace CoverGrabber
                 return;
             }
 
-            if (grabOptions.webPageUrl.StartsWith(@"http://cn.last.fm/"))
+            if (grabOptions.WebPageUrl.StartsWith(@"http://cn.last.fm/"))
             {
-                grabOptions.site = Sites.LastFm;
+                grabOptions.Site = Sites.LastFm;
                 this.parseCoverAddress = SiteLastFm.ParseCoverAddress;
                 this.parseTrackList = SiteLastFm.ParseTrackList;
                 this.parseTrackUrlList = SiteLastFm.ParseTrackUrlList;
@@ -567,13 +568,13 @@ namespace CoverGrabber
                 this.parseAlbumArtist = SiteLastFm.ParseAlbumArtist;
                 this.parseAlbumYear = SiteLastFm.ParseAlbumYear;
 
-                grabOptions.needLyric = false;
+                grabOptions.NeedLyric = false;
                 return;
             }
 
-            if (grabOptions.webPageUrl.StartsWith(@"http://vgmdb.net/"))
+            if (grabOptions.WebPageUrl.StartsWith(@"http://vgmdb.net/"))
             {
-                grabOptions.site = Sites.VgmDb;
+                grabOptions.Site = Sites.VgmDb;
                 this.parseCoverAddress = SiteVgmdb.ParseCoverAddress;
                 this.parseTrackList = SiteVgmdb.ParseTrackList;
                 this.parseTrackUrlList = SiteVgmdb.ParseTrackUrlList;
@@ -583,14 +584,14 @@ namespace CoverGrabber
                 this.parseAlbumArtist = SiteVgmdb.ParseAlbumArtist;
                 this.parseAlbumYear = SiteVgmdb.ParseAlbumYear;
 
-                grabOptions.needLyric = false;
+                grabOptions.NeedLyric = false;
                 return;
             }
 
-            if (grabOptions.webPageUrl.StartsWith(@"http://musicbrainz.org/") ||
-                grabOptions.webPageUrl.StartsWith(@"https://musicbrainz.org/"))
+            if (grabOptions.WebPageUrl.StartsWith(@"http://musicbrainz.org/") ||
+                grabOptions.WebPageUrl.StartsWith(@"https://musicbrainz.org/"))
             {
-                grabOptions.site = Sites.MusicBrainz;
+                grabOptions.Site = Sites.MusicBrainz;
                 this.parseCoverAddress = SiteMusicBrainz.ParseCoverAddress;
                 this.parseTrackList = SiteMusicBrainz.ParseTrackList;
                 this.parseTrackUrlList = SiteMusicBrainz.ParseTrackUrlList;
@@ -600,13 +601,13 @@ namespace CoverGrabber
                 this.parseAlbumArtist = SiteMusicBrainz.ParseAlbumArtist;
                 this.parseAlbumYear = SiteMusicBrainz.ParseAlbumYear;
 
-                grabOptions.needLyric = false;
+                grabOptions.NeedLyric = false;
                 return;
             }
-            if (grabOptions.webPageUrl.StartsWith(@"http://itunes.apple.com/") ||
-                grabOptions.webPageUrl.StartsWith(@"https://itunes.apple.com/"))
+            if (grabOptions.WebPageUrl.StartsWith(@"http://itunes.apple.com/") ||
+                grabOptions.WebPageUrl.StartsWith(@"https://itunes.apple.com/"))
             {
-                grabOptions.site = Sites.ItunesStore;
+                grabOptions.Site = Sites.ItunesStore;
                 this.parseCoverAddress = SiteItunes.ParseCoverAddress;
                 this.parseTrackList = SiteItunes.ParseTrackList;
                 this.parseTrackUrlList = SiteItunes.ParseTrackUrlList;
@@ -616,7 +617,7 @@ namespace CoverGrabber
                 this.parseAlbumArtist = SiteItunes.ParseAlbumArtist;
                 this.parseAlbumYear = SiteItunes.ParseAlbumYear;
 
-                grabOptions.needLyric = false;
+                grabOptions.NeedLyric = false;
                 return;
             }
         }

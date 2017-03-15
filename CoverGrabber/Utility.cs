@@ -14,71 +14,71 @@ namespace CoverGrabber
 {
     public struct VerifyCode
     {
-        public string code;
-        public string sessionID;
-        public string apply;
-        public string referer;
-        public string localVerifyCode;
+        public string Code;
+        public string SessionId;
+        public string Apply;
+        public string Referer;
+        public string LocalVerifyCode;
     };
 
     static class Utility
     {
-        public delegate string ParseCoverAddress(HtmlDocument PageDocument);
-        public delegate List<List<string>> ParseTrackList(HtmlDocument PageDocument);
-        public delegate List<List<string>> ParseTrackUrlList(HtmlDocument PageDocument);
-        public delegate List<List<string>> ParseTrackArtistList(HtmlDocument PageDocument);
-        public delegate string ParseTrackLyric(HtmlDocument PageDocument);
-        public delegate string ParseAlbumTitle(HtmlDocument PageDocument);
-        public delegate string ParseAlbumArtist(HtmlDocument PageDocument);
-        public delegate uint ParseAlbumYear(HtmlDocument PageDocument);
+        public delegate string ParseCoverAddress(HtmlDocument pageDocument);
+        public delegate List<List<string>> ParseTrackList(HtmlDocument pageDocument);
+        public delegate List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument);
+        public delegate List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument);
+        public delegate string ParseTrackLyric(HtmlDocument pageDocument);
+        public delegate string ParseAlbumTitle(HtmlDocument pageDocument);
+        public delegate string ParseAlbumArtist(HtmlDocument pageDocument);
+        public delegate uint ParseAlbumYear(HtmlDocument pageDocument);
 
         /// <summary>
         /// The cookies which assists verify code (otherwise verify code / 403 handler doesn't work)
         /// </summary>
-        static public CookieContainer cookies = new CookieContainer();
+        static public CookieContainer Cookies = new CookieContainer();
 
         /// <summary>
         /// Download a page (UTF-8) and return the page content
         /// </summary>
-        /// <param name="Url">URL to download</param>
-        /// <param name="Site">Site to download from</param>
+        /// <param name="url">URL to download</param>
+        /// <param name="site">Site to download from</param>
         /// <returns>The page content as string</returns>
-        static public HtmlDocument DownloadPage(string Url, Sites Site)
+        static public HtmlDocument DownloadPage(string url, Sites site)
         {
         Start:
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 
             bool alreadyHandledXiami403 = false;
-            switch (Site)
+            switch (site)
             {
                 case (Sites.Xiami):
                     {
-                        SiteXiami.InitializeRequest(ref request, Url);
+                        SiteXiami.InitializeRequest(ref request, url);
                         break;
                     }
                 case (Sites.Netease):
                     {
-                        SiteNetease.InitializeRequest(ref request, Url);
+                        SiteNetease.InitializeRequest(ref request, url);
                         break;
                     }
                 case (Sites.ItunesStore):
                     {
-                        SiteItunes.InitializeRequest(ref request, Url);
+                        SiteItunes.InitializeRequest(ref request, url);
                         break;
                     }
                 case (Sites.MusicBrainz):
                     {
-                        SiteMusicBrainz.InitializeRequest(ref request, Url);
+                        SiteMusicBrainz.InitializeRequest(ref request, url);
                         break;
                     }
                 case (Sites.VgmDb):
                     {
-                        SiteVgmdb.InitializeRequest(ref request, Url);
+                        SiteVgmdb.InitializeRequest(ref request, url);
                         break;
                     }
                 case (Sites.LastFm):
                     {
-                        SiteLastFm.InitializeRequest(ref request, Url);
+                        SiteLastFm.InitializeRequest(ref request, url);
                         break;
                     }
             }
@@ -91,7 +91,7 @@ namespace CoverGrabber
                 objStream = response.GetResponseStream();
                 StreamReader objReader = new StreamReader(objStream, Encoding.UTF8, true);
 
-                cookies.Add(response.Cookies);
+                Cookies.Add(response.Cookies);
                 responseText = objReader.ReadToEnd();
 
                 HtmlDocument responsePage = new HtmlDocument();
@@ -100,7 +100,7 @@ namespace CoverGrabber
             }
             catch (WebException e)
             {
-                switch (Site)
+                switch (site)
                 {
                     case (Sites.Xiami):
                         {
@@ -123,7 +123,7 @@ namespace CoverGrabber
                                             StreamReader exceptionReader = new StreamReader(exceptionStream, Encoding.UTF8, true);
                                             string exceptionText = exceptionReader.ReadToEnd();
 
-                                            SiteXiami.handleXiamiForbidden(exceptionText);
+                                            SiteXiami.HandleXiamiForbidden(exceptionText);
                                             alreadyHandledXiami403 = true;
                                             goto Start;
                                         }
@@ -140,18 +140,18 @@ namespace CoverGrabber
         /// <summary>
         /// Download a file (stream), store and return whether download succeeds
         /// </summary>
-        /// <param name="Url">URL to download</param>
-        /// <param name="FilePath">File path to save</param>
-        static public void DownloadFile(string Url, string FilePath)
+        /// <param name="url">URL to download</param>
+        /// <param name="filePath">File path to save</param>
+        static public void DownloadFile(string url, string filePath)
         {
-            if (File.Exists(FilePath))
+            if (File.Exists(filePath))
             {
-                File.Delete(FilePath);
+                File.Delete(filePath);
             }
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Url);
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream responseStream = response.GetResponseStream();
-            Stream fileStream = new FileStream(FilePath, System.IO.FileMode.Create);
+            Stream fileStream = new FileStream(filePath, System.IO.FileMode.Create);
             byte[] contentBytes = new byte[1024 * 32];
             int remainingSize = responseStream.Read(contentBytes, 0, (int)contentBytes.Length);
             while (remainingSize > 0)
@@ -168,40 +168,40 @@ namespace CoverGrabber
         /// <summary>
         /// Read an image and resize it (the max size on width/height is specified) with scale kept
         /// </summary>
-        /// <param name="SourceFilePath">The file before resize</param>
-        /// <param name="DestFilePath">The file after resize</param>
-        /// <param name="MaxSize">The max size on width/height</param>
+        /// <param name="sourceFilePath">The file before resize</param>
+        /// <param name="destFilePath">The file after resize</param>
+        /// <param name="maxSize">The max size on width/height</param>
         /// <returns>Whether resize succeeds</returns>
-        static public void ResizeImage(string SourceFilePath, string DestFilePath, int MaxSize)
+        static public void ResizeImage(string sourceFilePath, string destFilePath, int maxSize)
         {
             int newHeight;
             int newWidth;
-            Image largeImage = new Bitmap(SourceFilePath);
+            Image largeImage = new Bitmap(sourceFilePath);
 
-            if (File.Exists(DestFilePath))
+            if (File.Exists(destFilePath))
             {
-                File.Delete(DestFilePath);
+                File.Delete(destFilePath);
             }
 
             /* If the new size is smaller than the original size, resize it
              * Otherwise directly copy to create duplication
              * */
-            if (largeImage.Width > MaxSize && largeImage.Width > MaxSize)
+            if (largeImage.Width > maxSize && largeImage.Width > maxSize)
             {
                 if (largeImage.Height > largeImage.Width)
                 {
-                    newHeight = MaxSize;
-                    newWidth = (int)(MaxSize * ((double)largeImage.Width / (double)largeImage.Height));
+                    newHeight = maxSize;
+                    newWidth = (int)(maxSize * ((double)largeImage.Width / (double)largeImage.Height));
                 }
                 else if (largeImage.Height < largeImage.Width)
                 {
-                    newHeight = (int)(MaxSize * ((double)largeImage.Height / (double)largeImage.Width));
-                    newWidth = MaxSize;
+                    newHeight = (int)(maxSize * ((double)largeImage.Height / (double)largeImage.Width));
+                    newWidth = maxSize;
                 }
                 else
                 {
-                    newHeight = MaxSize;
-                    newWidth = MaxSize;
+                    newHeight = maxSize;
+                    newWidth = maxSize;
                 }
 
                 Image templateImage = new Bitmap(newWidth, newHeight);
@@ -211,14 +211,14 @@ namespace CoverGrabber
                 templateGraphics.SmoothingMode = SmoothingMode.HighQuality;
                 templateGraphics.Clear(Color.White);
                 templateGraphics.DrawImage(largeImage, new Rectangle(0, 0, newWidth, newHeight), new Rectangle(0, 0, largeImage.Width, largeImage.Height), GraphicsUnit.Pixel);
-                templateImage.Save(DestFilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                templateImage.Save(destFilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
 
                 templateGraphics.Dispose();
                 templateImage.Dispose();
             }
             else
             {
-                File.Copy(SourceFilePath, DestFilePath);
+                File.Copy(sourceFilePath, destFilePath);
             }
             largeImage.Dispose();
         }
@@ -227,9 +227,9 @@ namespace CoverGrabber
         /// Download, save and resize cover image
         /// </summary>
         /// <param name="AlbumPage">Album page (which contains cover)</param>
-        /// <param name="ResizeSize">The maximum size of width/height after resize (0 for skipping resizing)</param>
+        /// <param name="resizeSize">The maximum size of width/height after resize (0 for skipping resizing)</param>
         /// <returns>The file path after resizing</returns>
-        static public string GenerateCover(string remoteCoverUrl, int ResizeSize)
+        static public string GenerateCover(string remoteCoverUrl, int resizeSize)
         {
             string largeTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + ".jpg";
             string smallTempFile = Path.GetTempPath() + Path.GetFileName(remoteCoverUrl) + "s.jpg";
@@ -242,9 +242,9 @@ namespace CoverGrabber
                 File.Delete(smallTempFile);
             }
             DownloadFile(remoteCoverUrl, largeTempFile);
-            if (ResizeSize != 0)
+            if (resizeSize != 0)
             {
-                ResizeImage(largeTempFile, smallTempFile, ResizeSize);
+                ResizeImage(largeTempFile, smallTempFile, resizeSize);
             }
             File.Delete(largeTempFile);
             return (smallTempFile);
@@ -253,39 +253,39 @@ namespace CoverGrabber
         /// <summary>
         /// Write ID3 tags for a file
         /// </summary>
-        /// <param name="FilePath">The file path to write</param>
-        /// <param name="Id3Info">ID3 tags</param>
-        /// <param name="Options">Options (whether need to write info, cover, lyrics)</param>
-        static public void WriteFile(string FilePath, Id3 Id3Info, GrabOptions Options)
+        /// <param name="filePath">The file path to write</param>
+        /// <param name="id3Info">ID3 tags</param>
+        /// <param name="options">Options (whether need to write info, cover, lyrics)</param>
+        static public void WriteFile(string filePath, Id3 id3Info, GrabOptions options)
         {
-            TagLib.File trackFile = TagLib.File.Create(FilePath);
+            TagLib.File trackFile = TagLib.File.Create(filePath);
 
             trackFile.RemoveTags(TagLib.TagTypes.Id3v1);
             trackFile.RemoveTags(TagLib.TagTypes.Ape);
             TagLib.Id3v2.Tag.DefaultVersion = 3;
             TagLib.Id3v2.Tag.ForceDefaultVersion = true;
 
-            if (Options.needId3)
+            if (options.NeedId3)
             {
-                trackFile.Tag.Album = Id3Info.AlbumTitle;
-                trackFile.Tag.AlbumArtists = Id3Info.AlbumArtists;
-                trackFile.Tag.Title = Id3Info.TrackName;
-                trackFile.Tag.Performers = Id3Info.Performers;
-                trackFile.Tag.Year = Id3Info.Year;
-                trackFile.Tag.Disc = Id3Info.Disc;
-                trackFile.Tag.DiscCount = Id3Info.DiscCount;
-                trackFile.Tag.Track = Id3Info.Track;
-                trackFile.Tag.TrackCount = Id3Info.TrackCount;
+                trackFile.Tag.Album = id3Info.AlbumTitle;
+                trackFile.Tag.AlbumArtists = id3Info.AlbumArtists;
+                trackFile.Tag.Title = id3Info.TrackName;
+                trackFile.Tag.Performers = id3Info.Performers;
+                trackFile.Tag.Year = id3Info.Year;
+                trackFile.Tag.Disc = id3Info.Disc;
+                trackFile.Tag.DiscCount = id3Info.DiscCount;
+                trackFile.Tag.Track = id3Info.Track;
+                trackFile.Tag.TrackCount = id3Info.TrackCount;
             }
 
-            if (Options.needCover)
+            if (options.NeedCover)
             {
-                trackFile.Tag.Pictures = Id3Info.CoverImageList.ToArray();
+                trackFile.Tag.Pictures = id3Info.CoverImageList.ToArray();
             }
 
-            if (Options.needLyric)
+            if (options.NeedLyric)
             {
-                trackFile.Tag.Lyrics = Id3Info.Lyrics;
+                trackFile.Tag.Lyrics = id3Info.Lyrics;
             }
 
             trackFile.Save();
