@@ -1,11 +1,14 @@
-﻿namespace CoverGrabber
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace CoverGrabber
 {
     partial class mainForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -378,33 +381,33 @@
 
         #endregion
 
-        private System.Windows.Forms.Label folderL;
-        private System.Windows.Forms.TextBox folder;
-        private System.Windows.Forms.TextBox url;
-        private System.Windows.Forms.Label urlL;
-        private System.Windows.Forms.Button folderB;
-        private System.Windows.Forms.CheckBox extractC;
-        private System.Windows.Forms.CheckBox coverC;
-        private System.Windows.Forms.CheckBox id3C;
-        private System.Windows.Forms.PictureBox coverP;
-        private System.Windows.Forms.FolderBrowserDialog fbd;
-        private System.Windows.Forms.Label titleL;
-        private System.Windows.Forms.Label artiseL;
-        private System.Windows.Forms.TextBox trackT;
-        private System.Windows.Forms.CheckBox lyricC;
-        private System.Windows.Forms.NumericUpDown resizeSize;
-        private System.Windows.Forms.Button goB;
-        private System.Windows.Forms.StatusStrip sts;
-        private System.Windows.Forms.ToolStripProgressBar tssP;
-        private System.Windows.Forms.ToolStripStatusLabel tssL;
-        private System.Windows.Forms.PictureBox verifyCodeP;
-        private System.Windows.Forms.ToolStripStatusLabel tssDummy;
-        private System.ComponentModel.BackgroundWorker bw;
-        private System.Windows.Forms.GroupBox gbSort;
-        private System.Windows.Forms.RadioButton sManuallyRs;
-        private System.Windows.Forms.RadioButton sAutoRs;
-        private System.Windows.Forms.RadioButton sNaturallyRs;
-        private System.Windows.Forms.Button sortB;
+        private Label folderL;
+        private TextBox folder;
+        private TextBox url;
+        private Label urlL;
+        private Button folderB;
+        private CheckBox extractC;
+        private CheckBox coverC;
+        private CheckBox id3C;
+        private PictureBox coverP;
+        private FolderBrowserDialog fbd;
+        private Label titleL;
+        private Label artiseL;
+        private TextBox trackT;
+        private CheckBox lyricC;
+        private NumericUpDown resizeSize;
+        private Button goB;
+        private StatusStrip sts;
+        private ToolStripProgressBar tssP;
+        private ToolStripStatusLabel tssL;
+        private PictureBox verifyCodeP;
+        private ToolStripStatusLabel tssDummy;
+        private BackgroundWorker bw;
+        private GroupBox gbSort;
+        private RadioButton sManuallyRs;
+        private RadioButton sAutoRs;
+        private RadioButton sNaturallyRs;
+        private Button sortB;
     }
 }
 

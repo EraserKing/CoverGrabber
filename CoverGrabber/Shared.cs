@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using HtmlAgilityPack;
-using System.Net;
+﻿using System.Collections.Generic;
+using TagLib;
 
 namespace CoverGrabber
 {
@@ -15,16 +11,43 @@ namespace CoverGrabber
         public int ResizeSize;
         public bool NeedId3;
         public bool NeedLyric;
-        public string SortMode;
-        public Sites Site;
+        public EnumSortMode SortMode;
         public List<string> FileList;
+        public ISite SiteInterface;
     }
 
     public struct ProgressOptions
     {
         public string StatusMessage;
-        public ProgressReportObject ObjectName;
+        public EnumProgressReportObject ObjectName;
         public string ObjectValue;
+    }
+
+    public class AlbumInfo
+    {
+        public List<List<string>> TrackNamesByDiscs;
+        public List<List<string>> TrackUrlListByDiscs;
+        public List<List<string>> ArtistNamesByDiscs;
+        public string AlbumTitle;
+        public string AlbumArtistName;
+        public uint AlbumYear;
+        public string CoverImagePath;
+        public List<List<string>> LyricsByDiscs;
+
+        public Id3 this[int i, int j] => new Id3
+        {
+            AlbumTitle = AlbumTitle,
+            AlbumArtists = AlbumArtistName.Split(';'),
+            TrackName = TrackNamesByDiscs[i][j],
+            Disc = (uint)(i + 1),
+            DiscCount = (uint)TrackNamesByDiscs.Count,
+            Track = (uint)(j + 1),
+            TrackCount = (uint)TrackNamesByDiscs[i].Count,
+            Performers = (string.IsNullOrEmpty(ArtistNamesByDiscs[i][j]) ? AlbumArtistName : ArtistNamesByDiscs[i][j]).Split(';'),
+            Year = AlbumYear,
+            CoverImageList = new List<Picture> { new Picture(CoverImagePath) },
+            Lyrics = LyricsByDiscs?[i][j] ?? string.Empty
+        };
     }
 
     public struct Id3
@@ -32,7 +55,6 @@ namespace CoverGrabber
         public string AlbumTitle;
         public string[] AlbumArtists;
         public string TrackName;
-        public string[] TrackArtists;
         public uint Disc;
         public uint DiscCount;
         public uint Track;
@@ -40,10 +62,17 @@ namespace CoverGrabber
         public string Lyrics;
         public string[] Performers;
         public uint Year;
-        public List<TagLib.Picture> CoverImageList;
+        public List<Picture> CoverImageList;
     }
 
-    public enum ProgressReportObject
+    public enum EnumSortMode
+    {
+        Auto,
+        Natural,
+        Manual
+    }
+
+    public enum EnumProgressReportObject
     {
         AlbumTitle,
         AlbumArtist,
@@ -54,15 +83,5 @@ namespace CoverGrabber
         Skip
     }
 
-    public enum Sites
-    {
-        Null,
-        Xiami,
-        Netease,
-        AmazonJp,
-        LastFm,
-        VgmDb,
-        MusicBrainz,
-        ItunesStore
-    }
+    public delegate void DelegateSetProgress(int percentage, string caption, EnumProgressReportObject reportObjecct, string reportContent);
 }

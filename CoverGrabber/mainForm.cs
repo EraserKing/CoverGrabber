@@ -1,649 +1,343 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
-using TagLib;
+using System.Windows.Forms;
+using CoverGrabber.Site;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace CoverGrabber
 {
     public partial class mainForm : Form
     {
-        Utility.ParseCoverAddress parseCoverAddress;
-        Utility.ParseTrackList parseTrackList;
-        Utility.ParseTrackUrlList parseTrackUrlList;
-        Utility.ParseTrackArtistList parseTrackArtistList;
-        Utility.ParseTrackLyric parseTrackLyric;
-        Utility.ParseAlbumTitle parseAlbumTitle;
-        Utility.ParseAlbumArtist parseAlbumArtist;
-        Utility.ParseAlbumYear parseAlbumYear;
-
-        GrabOptions grabOptions = new GrabOptions();
-        List<string> sortedFileList = new List<string>();
+        List<string> _sortedFileList = new List<string>();
+        Dictionary<string, ISite> _supportedSites = new Dictionary<string, ISite>();
 
         public mainForm()
         {
             InitializeComponent();
+
+            List<ISite> availableSites = new List<ISite>
+            {
+                new SiteXiami(),
+                new SiteItunes(),
+                new SiteLastFm(),
+                new SiteMusicBrainz(),
+                new SiteNetease(),
+                new SiteVgmdb(),
+            };
+
+            foreach (ISite site in availableSites)
+            {
+                foreach (string supportedSite in site.SupportedHost)
+                {
+                    _supportedSites.Add(supportedSite, site);
+                }
+            }
         }
 
         private void folderB_Click(object sender, EventArgs e)
         {
-            if (this.fbd.ShowDialog() == DialogResult.OK)
+            if (fbd.ShowDialog() == DialogResult.OK)
             {
-                if (this.folder.Text != "")
+                if (folder.Text != string.Empty)
                 {
                     DialogResult dr = MessageBox.Show("Do you want to replace the folder text box, or append it to the list?\nYes: Replace\nNo: Append to the list", "Question", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                     switch (dr)
                     {
                         case DialogResult.Yes:
                             {
-                                this.folder.Text = this.fbd.SelectedPath;
+                                folder.Text = fbd.SelectedPath;
                                 break;
                             }
                         case DialogResult.No:
                             {
-                                this.folder.Text = (this.folder.Text == "" ? "" : this.folder.Text + "; ") + this.fbd.SelectedPath;
+                                folder.Text = (folder.Text == string.Empty ? string.Empty : folder.Text + "; ") + fbd.SelectedPath;
                                 break;
                             }
                     }
                 }
                 else
                 {
-                    this.folder.Text = this.fbd.SelectedPath;
+                    folder.Text = fbd.SelectedPath;
                 }
             }
         }
 
         private void coverC_CheckedChanged(object sender, EventArgs e)
         {
-            this.resizeSize.Enabled = this.coverC.Checked;
+            resizeSize.Enabled = coverC.Checked;
         }
 
         private void goB_Click(object sender, EventArgs e)
         {
-            GrabOptions options = new GrabOptions();
-            options.Site = Sites.Null;
-            options.LocalFolder = this.folder.Text;
-            options.WebPageUrl = this.url.Text;
-            options.NeedCover = this.coverC.Checked;
-            options.ResizeSize = (int)this.resizeSize.Value;
-            options.NeedId3 = this.id3C.Checked;
-            options.NeedLyric = this.lyricC.Checked;
-            if (this.sAutoRs.Checked)
+            GrabOptions options = new GrabOptions
             {
-                options.SortMode = "Auto";
-            }
-            else if (this.sNaturallyRs.Checked)
+                SiteInterface = null,
+                LocalFolder = folder.Text,
+                WebPageUrl = url.Text,
+                NeedCover = coverC.Checked,
+                ResizeSize = (int)resizeSize.Value,
+                NeedId3 = id3C.Checked,
+                NeedLyric = lyricC.Checked
+            };
+            if (sAutoRs.Checked)
             {
-                options.SortMode = "Naturally";
+                options.SortMode = EnumSortMode.Auto;
             }
-            else if (this.sManuallyRs.Checked)
+            else if (sNaturallyRs.Checked)
             {
-                options.SortMode = "Manually";
+                options.SortMode = EnumSortMode.Natural;
             }
-            options.FileList = this.sortedFileList;
+            else if (sManuallyRs.Checked)
+            {
+                options.SortMode = EnumSortMode.Manual;
+            }
+            options.FileList = _sortedFileList;
 
-            this.InitializeEnvironment(ref options);
-            if (options.Site == Sites.Null)
+            try
+            {
+                Utility.InitializeEnvironment(ref options, _supportedSites);
+            }
+            catch (NotImplementedException)
             {
                 MessageBox.Show("Not supported site.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
-            grabOptions = options;
-
-            this.folder.Enabled = false;
-            this.folderB.Enabled = false;
-            this.url.Enabled = false;
-            this.coverC.Enabled = false;
-            this.resizeSize.Enabled = false;
-            this.id3C.Enabled = false;
-            this.lyricC.Enabled = false;
-            this.goB.Enabled = false;
-            this.sNaturallyRs.Enabled = false;
-            this.sAutoRs.Enabled = false;
-            this.sManuallyRs.Enabled = false;
-            this.sortB.Enabled = false;
-            
-
-            this.bw.RunWorkerAsync(grabOptions);
-        }
-
-        private void bw_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
-        {
-            this.DoGrab(this.bw, e.Argument);
-        }
-
-        private void bw_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
-        {
-            this.tssP.Value = e.ProgressPercentage;
-            ProgressOptions progressOptions = (ProgressOptions)e.UserState;
-
-            this.tssL.Text = progressOptions.StatusMessage;
-
-            switch (progressOptions.ObjectName)
-            {
-                case (ProgressReportObject.AlbumTitle):
-                    {
-                        this.titleL.Text = progressOptions.ObjectValue;
-                        break;
-                    }
-                case (ProgressReportObject.AlbumArtist):
-                    {
-                        this.artiseL.Text = progressOptions.ObjectValue;
-                        break;
-                    }
-                case (ProgressReportObject.AlbumCover):
-                    {
-                        this.coverP.ImageLocation = progressOptions.ObjectValue;
-                        break;
-                    }
-                case (ProgressReportObject.Text):
-                    {
-                        this.trackT.AppendText(progressOptions.ObjectValue);
-                        break;
-                    }
-                case (ProgressReportObject.TextClear):
-                    {
-                        this.trackT.Clear();
-                        break;
-                    }
-                case (ProgressReportObject.VerifyCode):
-                    {
-                        this.verifyCodeP.ImageLocation = progressOptions.ObjectValue;
-                        break;
-                    }
-            }
-        }
-
-        private void bw_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
-        {
-            this.folder.Enabled = true;
-            this.folderB.Enabled = true;
-            this.url.Enabled = true;
-            this.coverC.Enabled = true;
-            this.resizeSize.Enabled = true;
-            this.id3C.Enabled = true;
-            this.lyricC.Enabled = true;
-            this.goB.Enabled = true;
-            this.sNaturallyRs.Enabled = true;
-            this.sAutoRs.Enabled = true;
-            this.sManuallyRs.Enabled = true;
-            this.sortB.Enabled = this.sManuallyRs.Checked;
-        }
-
-        private void DoGrab(BackgroundWorker Bw, object Options)
-        {
-            GrabOptions options = (GrabOptions)Options;
-            HtmlAgilityPack.HtmlDocument albumPage;
-
-            string albumArtistName = "";
-            string albumTitle = "";
-            uint albumYear = 0;
-
-            List<List<string>> trackNamesByDiscs = new List<List<string>>();
-            List<List<string>> trackUrlListByDiscs = new List<List<string>>();
-            List<List<string>> artistNamesByDiscs = new List<List<string>>();
-            List<List<string>> lyricsByDiscs = new List<List<string>>();
-            List<string> fileList = new List<string>();
-
-            string smallTempFile = "";
-
-            int localTrackQuantity = 0;
-            int remoteTrackQuantity = 0;
-
-            int currentTrackIndex = 0;
-            int currentDiscIndex = 0;
-
-            #region Preparion work
-            CleanProgress(Bw);
             if (!options.NeedCover && !options.NeedId3 && !options.NeedLyric)
             {
                 MessageBox.Show("You haven't pick any task.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            #endregion
 
-            #region Check local folder and generate files list
-            SetProgress(Bw, 0, "Getting information for local tracks...", ProgressReportObject.Skip, "");
-            try
-            {
-                if (options.SortMode == "Auto" || options.SortMode == "Naturally")
-                {
-                    fileList = GenerateFileList(options.LocalFolder);
-                }
-                else if (options.SortMode == "Manually")
-                {
-                    fileList = options.FileList;
-                }
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                MessageBox.Show("Folder " + e.Message + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress(Bw);
-                return;
-            }
-            #endregion
+            folder.Enabled = false;
+            folderB.Enabled = false;
+            url.Enabled = false;
+            coverC.Enabled = false;
+            resizeSize.Enabled = false;
+            id3C.Enabled = false;
+            lyricC.Enabled = false;
+            goB.Enabled = false;
+            sNaturallyRs.Enabled = false;
+            sAutoRs.Enabled = false;
+            sManuallyRs.Enabled = false;
+            sortB.Enabled = false;
 
-            #region Get remote page
-            SetProgress(Bw, 10, "Getting remote page information...", ProgressReportObject.Skip, "");
-            try
-            {
-                albumPage = Utility.DownloadPage(options.WebPageUrl, options.Site);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Accessing album page " + options.WebPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress(Bw);
-                return;
-            }
-            #endregion
 
-            #region Generate track lists
-            SetProgress(Bw, 20, "Getting tracks list...", ProgressReportObject.Skip, "");
-            try
-            {
-                trackNamesByDiscs = this.parseTrackList(albumPage);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Parsing track lists from " + options.WebPageUrl + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress(Bw);
-                return;
-            }
-            #endregion
+            bw.RunWorkerAsync(options);
+        }
 
-            #region Compare if quantity tracks in local and on page equal
-            foreach (var trackNamesInDisc in trackNamesByDiscs)
-            {
-                remoteTrackQuantity += trackNamesInDisc.Count;
-            }
-            localTrackQuantity = fileList.Count;
-            if (remoteTrackQuantity != localTrackQuantity)
-            {
-                MessageBox.Show("You have " + localTrackQuantity + " tracks in local folder(s), but " + remoteTrackQuantity + " tracks on album page.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress(Bw);
-                return;
-            }
-            #endregion
+        private void bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            DoGrab(e.Argument);
+        }
 
-            #region Generate file list in auto sort mode
-            if (options.SortMode == "Auto")
+        private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            if (e.ProgressPercentage != -1)
             {
-                bool ifValid;
-                Dictionary<string, Tuple<int, int>> localToRemoteMap;
-                List<string> sortedFileList;
-                sortedFileList = Utility.AutoSortFile(fileList, trackNamesByDiscs, out ifValid, out localToRemoteMap);
-                string promptMessage = "The auto sort result is:\n";
-                var queryResult = from key in localToRemoteMap.Keys
-                                  orderby key
-                                  select key;
-                foreach (var key in queryResult)
-                {
-                    promptMessage += key + " => " + trackNamesByDiscs[localToRemoteMap[key].Item1][localToRemoteMap[key].Item2] + "\n";
-                }
-                if (ifValid)
-                {
-                    promptMessage += "To accept this, press Yes. To continue to the naturally sort, press No. To cancel, press Cancel.";
-                    DialogResult dr = MessageBox.Show(promptMessage, "Auto sort result", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
-                    if (dr == DialogResult.Yes)
+                tssP.Value = e.ProgressPercentage;
+            }
+            ProgressOptions progressOptions = (ProgressOptions)e.UserState;
+
+            if (progressOptions.StatusMessage != null)
+            {
+                tssL.Text = progressOptions.StatusMessage;
+            }
+
+            switch (progressOptions.ObjectName)
+            {
+                case (EnumProgressReportObject.AlbumTitle):
                     {
-                        fileList = sortedFileList;
-                    }
-                    else if (dr == DialogResult.Cancel)
-                    {
-                        CleanProgress(Bw);
-                        return;
-                    }
-                }
-                else
-                {
-                    string missingFiles = "";
-                    foreach(var key in fileList)
-                    {
-                        if (!localToRemoteMap.ContainsKey(key))
-                        {
-                            missingFiles += key + "\n";
-                        }
-                    }
-                    if(missingFiles!= "")
-                    {
-                        promptMessage += "\n These files do not have matched tracks:\n";
-                        promptMessage += missingFiles;
-                    }
-                    promptMessage += "You cannot continue in Auto mode, but you can sort them manually.";
-                    MessageBox.Show(promptMessage, "Auto sort result", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    CleanProgress(Bw);
-                    return;
-                }
-            }
-            #endregion
-
-            #region Get cover
-            if (options.NeedCover)
-            {
-                SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.Skip, "");
-                try
-                {
-                    string largeCoverUrl = this.parseCoverAddress(albumPage);
-                    smallTempFile = Utility.GenerateCover(largeCoverUrl, options.ResizeSize);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show("Downloading cover failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    CleanProgress(Bw);
-                    return;
-                }
-                SetProgress(Bw, 30, "Getting cover image...", ProgressReportObject.AlbumCover, smallTempFile);
-            }
-            #endregion
-
-            #region Get ID3
-            if (options.NeedId3)
-            {
-                SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.Skip, "");
-                try
-                {
-                    SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.TextClear, "");
-
-                    trackUrlListByDiscs = this.parseTrackUrlList(albumPage);
-                    artistNamesByDiscs = this.parseTrackArtistList(albumPage);
-                    foreach (var trackList in trackNamesByDiscs)
-                    {
-                        foreach (string track in trackList)
-                        {
-                            SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.Text, track + "\n");
-                        }
-                    }
-                    albumTitle = this.parseAlbumTitle(albumPage);
-                    albumArtistName = this.parseAlbumArtist(albumPage);
-                    albumYear = this.parseAlbumYear(albumPage);
-
-                    SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumTitle, albumTitle);
-                    SetProgress(Bw, 40, "Getting ID3 information...", ProgressReportObject.AlbumArtist, albumArtistName);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show("Parsing page failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    CleanProgress(Bw);
-                    return;
-                }
-            }
-            #endregion
-
-            #region Get lyrics
-            if (options.NeedLyric)
-            {
-                SetProgress(Bw, 50, "Getting lyrics...", ProgressReportObject.Skip, "");
-
-                currentTrackIndex = 0;
-                
-                foreach (var trackUrlInDisc in trackUrlListByDiscs)
-                {
-                    List<string> lyricInDisc = new List<string>();
-                    foreach (string trackUrl in trackUrlInDisc)
-                    {
-                        try
-                        {
-                            string lyric = "";
-                            SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1) + "...", ProgressReportObject.Skip, "");
-
-                            if (trackUrl != "")
-                            {
-                                switch (options.Site)
-                                {
-                                    case (Sites.Xiami):
-                                        {
-                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://www.xiami.com" + trackUrl, options.Site));
-                                            break;
-                                        }
-                                    case (Sites.Netease):
-                                        {
-                                            lyric = this.parseTrackLyric(Utility.DownloadPage("http://music.163.com" + trackUrl, options.Site));
-                                            break;
-                                        }
-                                }
-                                if (lyric != "")
-                                {
-                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1) + "...", ProgressReportObject.Text, "\nFirst line of lyric for track " + (currentTrackIndex + 1) + ":\n");
-                                    SetProgress(Bw, 50 + (int)(40.0 * currentTrackIndex / remoteTrackQuantity), "Getting lyric for track " + (currentTrackIndex + 1) + "...", ProgressReportObject.Text, lyric.Split("\n".ToCharArray())[0]);
-                                }
-                                System.Threading.Thread.Sleep(500);
-                            }
-                            currentTrackIndex++;
-                            lyricInDisc.Add(lyric);
-                        }
-                        catch (Exception e)
-                        {
-                            MessageBox.Show("Downloading lyrics for track " + (currentTrackIndex + 1) + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            CleanProgress(Bw);
-                            return;
-                        }
-                    }
-                    currentDiscIndex++;
-                    lyricsByDiscs.Add(lyricInDisc);
-                }
-            }
-            #endregion
-
-            #region Write file
-            currentTrackIndex = 0;
-            SetProgress(Bw, 90, "Writing local files...", ProgressReportObject.Skip, "");
-
-            for (int i = 0; i < trackNamesByDiscs.Count; i++)
-            {
-                for (int j = 0; j < trackNamesByDiscs[i].Count; j++)
-                {
-                    SetProgress(Bw, 90 + (int)(10.0 * currentTrackIndex / localTrackQuantity), "Writing track " + (currentTrackIndex + 1) + " ...", ProgressReportObject.Skip, "");
-
-                    try
-                    {
-                        Id3 id3 = new Id3();
-
-                        if (options.NeedId3)
-                        {
-                            id3.AlbumTitle = albumTitle;
-                            id3.AlbumArtists = albumArtistName.Split(";".ToCharArray());
-                            id3.TrackName = trackNamesByDiscs[i][j];
-                            id3.Disc = (uint)(i + 1);
-                            id3.DiscCount = (uint)(trackNamesByDiscs.Count);
-                            id3.Track = (uint)(j + 1);
-                            id3.TrackCount = (uint)(trackNamesByDiscs[i].Count);
-                            id3.Performers = (artistNamesByDiscs[i][j] != "" ? artistNamesByDiscs[i][j] : albumArtistName).Split(";".ToCharArray());
-                            id3.Year = albumYear;
-                        }
-                        if (options.NeedCover)
-                        {
-                            id3.CoverImageList = new List<Picture>();
-                            id3.CoverImageList.Add(new Picture(smallTempFile));
-                        }
-                        if (options.NeedLyric)
-                        {
-                            id3.Lyrics = lyricsByDiscs[i][j];
-                        }
-                        Utility.WriteFile(fileList[currentTrackIndex], id3, options);
-                        currentTrackIndex++;
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show("Writing information for track " + (currentTrackIndex + 1) + " failed.\n" + e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        CleanProgress(Bw);
+                        titleL.Text = progressOptions.ObjectValue;
                         break;
                     }
-                }
+                case (EnumProgressReportObject.AlbumArtist):
+                    {
+                        artiseL.Text = progressOptions.ObjectValue;
+                        break;
+                    }
+                case (EnumProgressReportObject.AlbumCover):
+                    {
+                        coverP.ImageLocation = progressOptions.ObjectValue;
+                        break;
+                    }
+                case (EnumProgressReportObject.Text):
+                    {
+                        trackT.AppendText(progressOptions.ObjectValue);
+                        break;
+                    }
+                case (EnumProgressReportObject.TextClear):
+                    {
+                        trackT.Clear();
+                        break;
+                    }
+                case (EnumProgressReportObject.VerifyCode):
+                    {
+                        verifyCodeP.ImageLocation = progressOptions.ObjectValue;
+                        break;
+                    }
             }
-            #endregion
-
-            #region Clean up
-            SetProgress(Bw, 100, "Done", ProgressReportObject.Skip, "");
-
-            MessageBox.Show("Done.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            #endregion
         }
 
-        private static void SetProgress(BackgroundWorker Bw, int Progress, string statusMessage, ProgressReportObject objectName, string objectValue)
+        private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            ProgressOptions progressOptions = new ProgressOptions();
-            progressOptions.StatusMessage = statusMessage;
-            progressOptions.ObjectName = objectName;
-            progressOptions.ObjectValue = objectValue;
-            Bw.ReportProgress(Progress, progressOptions);
+            folder.Enabled = true;
+            folderB.Enabled = true;
+            url.Enabled = true;
+            coverC.Enabled = true;
+            resizeSize.Enabled = true;
+            id3C.Enabled = true;
+            lyricC.Enabled = true;
+            goB.Enabled = true;
+            sNaturallyRs.Enabled = true;
+            sAutoRs.Enabled = true;
+            sManuallyRs.Enabled = true;
+            sortB.Enabled = sManuallyRs.Checked;
         }
 
-        private static void CleanProgress(BackgroundWorker Bw)
+        private void DoGrab(object grabOptions)
         {
-            SetProgress(Bw, 0, "", ProgressReportObject.Skip, "");
-        }
-
-        private static List<string> GenerateFileList(string FolderStrings)
-        {
+            GrabOptions options = (GrabOptions)grabOptions;
             List<string> fileList = new List<string>();
+            CleanProgress();
 
-            string[] folderLists = FolderStrings.Split(";".ToCharArray());
-            foreach (string singleFolder in folderLists)
+            try
             {
-                if (!Directory.Exists(singleFolder))
+                SetProgress(0, "Getting information for local tracks...", EnumProgressReportObject.Skip, string.Empty);
+                switch (options.SortMode)
                 {
-                    throw (new DirectoryNotFoundException(singleFolder));
+                    case EnumSortMode.Auto:
+                    case EnumSortMode.Natural:
+                        fileList = Utility.GenerateFileList(options.LocalFolder);
+                        break;
+                    case EnumSortMode.Manual:
+                        fileList = options.FileList;
+                        break;
                 }
-                DirectoryInfo directory = new DirectoryInfo(singleFolder);
+                SetProgress(10, "Getting remote page information...", EnumProgressReportObject.Skip, string.Empty);
+                HtmlDocument albumPage = Utility.DownloadPage(options.SiteInterface.ConvertAlbumUrl(options.WebPageUrl), options.SiteInterface);
+
+                SetProgress(20, "Getting tracks list...", EnumProgressReportObject.Skip, string.Empty);
+                AlbumInfo albumInfo = Utility.ParseId3(options.SiteInterface, albumPage);
+
+                if (fileList.Count != albumInfo.TrackNamesByDiscs.Sum(x => x.Count))
                 {
-                    foreach (FileInfo file in directory.GetFiles("*.m4a"))
-                    {
-                        fileList.Add(file.FullName);
-                    }
-                    foreach (FileInfo file in directory.GetFiles("*.mp3"))
-                    {
-                        fileList.Add(file.FullName);
-                    }
+                    throw new FileCountNotMatchException(fileList.Count, albumInfo.TrackNamesByDiscs.Sum(x => x.Count));
                 }
 
+                // Notice fileList after this step is already sorted.
+                if (options.SortMode == EnumSortMode.Auto && !Utility.TryToMatchFiles(ref fileList, albumInfo.TrackNamesByDiscs))
+                {
+                    throw new FileMatchException();
+                }
+
+                if (options.NeedId3)
+                {
+                    SetProgress(30, "Getting ID3 information...", new Dictionary<EnumProgressReportObject, string>
+                    {
+                        {EnumProgressReportObject.TextClear, string.Empty},
+                        {EnumProgressReportObject.Text, string.Join(Environment.NewLine, albumInfo.TrackNamesByDiscs.Select(x => string.Join(Environment.NewLine, x)))},
+                        {EnumProgressReportObject.AlbumTitle, albumInfo.AlbumTitle},
+                        {EnumProgressReportObject.AlbumArtist, albumInfo.AlbumArtistName}
+                    });
+                }
+
+                SetProgress(40, "Getting cover image...", EnumProgressReportObject.Skip, string.Empty);
+                if (options.NeedCover)
+                {
+                    albumInfo.CoverImagePath = Utility.GenerateCover(options.SiteInterface.ParseCoverAddress(albumPage), options.ResizeSize);
+                    SetProgress(-1, null, EnumProgressReportObject.AlbumCover, albumInfo.CoverImagePath);
+                }
+
+                if (options.NeedLyric)
+                {
+                    Utility.DownloadLyrics(ref albumInfo, options.SiteInterface, SetProgress);
+                }
+
+                SetProgress(90, "Writing local files...", EnumProgressReportObject.Skip, string.Empty);
+                Utility.WriteFiles(albumInfo, fileList, options, SetProgress);
+
+                SetProgress(100, "Done", EnumProgressReportObject.Skip, string.Empty);
+                MessageBox.Show("Done.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            return (fileList);
+            catch (FileCountNotMatchException ex)
+            {
+                MessageBox.Show($"You have {ex.LocalCount} tracks in local folder(s), but {ex.RemoteCount} tracks on album page.", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                CleanProgress();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                MessageBox.Show($"Folder {options.LocalFolder} doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CleanProgress();
+            }
+            catch (FileMatchException)
+            {
+                MessageBox.Show("Auto file match failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CleanProgress();
+            }
+            catch (DownloadCoverException)
+            {
+                MessageBox.Show("Download cover image filed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CleanProgress();
+            }
+            catch (WritingFileException ex)
+            {
+                MessageBox.Show($"Writing information for track {ex.TrackNumber} failed.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CleanProgress();
+            }
+            catch (DownloadLyricException ex)
+            {
+                MessageBox.Show($"Downloading lyrics for track {ex.TrackNumber} failed.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CleanProgress();
+            }
         }
 
-        private void InitializeEnvironment(ref GrabOptions grabOptions)
+        private void SetProgress(int progress, string statusMessage, EnumProgressReportObject objectName, string objectValue)
         {
-            if (grabOptions.WebPageUrl.StartsWith(@"http://www.xiami.com/album/"))
+            ProgressOptions progressOptions = new ProgressOptions
             {
-                grabOptions.Site = Sites.Xiami;
-                this.parseCoverAddress = SiteXiami.ParseCoverAddress;
-                this.parseTrackList = SiteXiami.ParseTrackList;
-                this.parseTrackUrlList = SiteXiami.ParseTrackUrlList;
-                this.parseTrackArtistList = SiteXiami.ParseTrackArtistList;
-                this.parseTrackLyric = SiteXiami.ParseTrackLyric;
-                this.parseAlbumTitle = SiteXiami.ParseAlbumTitle;
-                this.parseAlbumArtist = SiteXiami.ParseAlbumArtist;
-                this.parseAlbumYear = SiteXiami.ParseAlbumYear;
-                return;
-            }
+                StatusMessage = statusMessage,
+                ObjectName = objectName,
+                ObjectValue = objectValue
+            };
+            bw.ReportProgress(progress, progressOptions);
+        }
 
-            if (grabOptions.WebPageUrl.StartsWith(@"http://music.163.com/"))
+        private void SetProgress(int progress, string statusMessage, Dictionary<EnumProgressReportObject, string> parameters)
+        {
+            foreach (var kvp in parameters)
             {
-                grabOptions.Site = Sites.Netease;
-                // Rename http://music.163.com/#/album?id=76460 to http://music.163.com/album?id=76460, otherwise it doesn't work
-                grabOptions.WebPageUrl = grabOptions.WebPageUrl.Replace("/#/", "/");
-                this.parseCoverAddress = SiteNetease.ParseCoverAddress;
-                this.parseTrackList = SiteNetease.ParseTrackList;
-                this.parseTrackUrlList = SiteNetease.ParseTrackUrlList;
-                this.parseTrackArtistList = SiteNetease.ParseTrackArtistList;
-                this.parseTrackLyric = SiteNetease.ParseTrackLyric;
-                this.parseAlbumTitle = SiteNetease.ParseAlbumTitle;
-                this.parseAlbumArtist = SiteNetease.ParseAlbumArtist;
-                this.parseAlbumYear = SiteNetease.ParseAlbumYear;
-                return;
+                ProgressOptions progressOptions = new ProgressOptions
+                {
+                    StatusMessage = statusMessage,
+                    ObjectName = kvp.Key,
+                    ObjectValue = kvp.Value
+                };
+                bw.ReportProgress(progress, progressOptions);
             }
+        }
 
-            if (grabOptions.WebPageUrl.StartsWith(@"http://cn.last.fm/"))
-            {
-                grabOptions.Site = Sites.LastFm;
-                this.parseCoverAddress = SiteLastFm.ParseCoverAddress;
-                this.parseTrackList = SiteLastFm.ParseTrackList;
-                this.parseTrackUrlList = SiteLastFm.ParseTrackUrlList;
-                this.parseTrackArtistList = SiteLastFm.ParseTrackArtistList;
-                this.parseTrackLyric = SiteLastFm.ParseTrackLyric;
-                this.parseAlbumTitle = SiteLastFm.ParseAlbumTitle;
-                this.parseAlbumArtist = SiteLastFm.ParseAlbumArtist;
-                this.parseAlbumYear = SiteLastFm.ParseAlbumYear;
-
-                grabOptions.NeedLyric = false;
-                return;
-            }
-
-            if (grabOptions.WebPageUrl.StartsWith(@"http://vgmdb.net/"))
-            {
-                grabOptions.Site = Sites.VgmDb;
-                this.parseCoverAddress = SiteVgmdb.ParseCoverAddress;
-                this.parseTrackList = SiteVgmdb.ParseTrackList;
-                this.parseTrackUrlList = SiteVgmdb.ParseTrackUrlList;
-                this.parseTrackArtistList = SiteVgmdb.ParseTrackArtistList;
-                this.parseTrackLyric = SiteVgmdb.ParseTrackLyric;
-                this.parseAlbumTitle = SiteVgmdb.ParseAlbumTitle;
-                this.parseAlbumArtist = SiteVgmdb.ParseAlbumArtist;
-                this.parseAlbumYear = SiteVgmdb.ParseAlbumYear;
-
-                grabOptions.NeedLyric = false;
-                return;
-            }
-
-            if (grabOptions.WebPageUrl.StartsWith(@"http://musicbrainz.org/") ||
-                grabOptions.WebPageUrl.StartsWith(@"https://musicbrainz.org/"))
-            {
-                grabOptions.Site = Sites.MusicBrainz;
-                this.parseCoverAddress = SiteMusicBrainz.ParseCoverAddress;
-                this.parseTrackList = SiteMusicBrainz.ParseTrackList;
-                this.parseTrackUrlList = SiteMusicBrainz.ParseTrackUrlList;
-                this.parseTrackArtistList = SiteMusicBrainz.ParseTrackArtistList;
-                this.parseTrackLyric = SiteMusicBrainz.ParseTrackLyric;
-                this.parseAlbumTitle = SiteMusicBrainz.ParseAlbumTitle;
-                this.parseAlbumArtist = SiteMusicBrainz.ParseAlbumArtist;
-                this.parseAlbumYear = SiteMusicBrainz.ParseAlbumYear;
-
-                grabOptions.NeedLyric = false;
-                return;
-            }
-            if (grabOptions.WebPageUrl.StartsWith(@"http://itunes.apple.com/") ||
-                grabOptions.WebPageUrl.StartsWith(@"https://itunes.apple.com/"))
-            {
-                grabOptions.Site = Sites.ItunesStore;
-                this.parseCoverAddress = SiteItunes.ParseCoverAddress;
-                this.parseTrackList = SiteItunes.ParseTrackList;
-                this.parseTrackUrlList = SiteItunes.ParseTrackUrlList;
-                this.parseTrackArtistList = SiteItunes.ParseTrackArtistList;
-                this.parseTrackLyric = SiteItunes.ParseTrackLyric;
-                this.parseAlbumTitle = SiteItunes.ParseAlbumTitle;
-                this.parseAlbumArtist = SiteItunes.ParseAlbumArtist;
-                this.parseAlbumYear = SiteItunes.ParseAlbumYear;
-
-                grabOptions.NeedLyric = false;
-                return;
-            }
+        private void CleanProgress()
+        {
+            SetProgress(0, string.Empty, EnumProgressReportObject.Skip, string.Empty);
         }
 
         private void sNatuallyRs_CheckedChanged(object sender, EventArgs e)
         {
-            if (sNaturallyRs.Checked)
-            {
-                this.sortB.Enabled = false;
-            }
+            sortB.Enabled = !sNaturallyRs.Checked;
         }
 
         private void sAutoRs_CheckedChanged(object sender, EventArgs e)
         {
-            if (sAutoRs.Checked)
-            {
-                this.sortB.Enabled = false;
-            }
+            sortB.Enabled = !sAutoRs.Checked;
         }
 
         private void sManuallyRs_CheckedChanged(object sender, EventArgs e)
         {
-            if (sManuallyRs.Checked)
-            {
-                this.sortB.Enabled = true;
-            }
+            sortB.Enabled = sManuallyRs.Checked;
         }
 
         private void mainForm_Load(object sender, EventArgs e)
@@ -655,27 +349,26 @@ namespace CoverGrabber
         {
             try
             {
-                if (this.sortedFileList == null)
+                if (_sortedFileList == null)
                 {
-                    this.sortedFileList = GenerateFileList(this.folder.Text);
+                    _sortedFileList = Utility.GenerateFileList(folder.Text);
                 }
             }
             catch (DirectoryNotFoundException e1)
             {
-                MessageBox.Show("Folder " + e1.Message + " doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Folder {e1.Message} doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            sortForm sf = new sortForm(this.sortedFileList);
+            sortForm sf = new sortForm(_sortedFileList);
             sf.ShowDialog();
-            this.sortedFileList = sf.files;
+            _sortedFileList = sf.Files;
         }
 
         private void folder_TextChanged(object sender, EventArgs e)
         {
-            this.sNaturallyRs.Checked = true;
-            this.sortB.Enabled = false;
-            this.sortedFileList = null;
+            sNaturallyRs.Checked = true;
+            sortB.Enabled = false;
+            _sortedFileList = null;
         }
-
     }
 }

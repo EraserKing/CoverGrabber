@@ -1,11 +1,14 @@
-﻿namespace CoverGrabber
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace CoverGrabber
 {
     partial class sortForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -142,12 +145,12 @@
 
         #endregion
 
-        private System.Windows.Forms.ListView fileLv;
-        private System.Windows.Forms.Button TopB;
-        private System.Windows.Forms.Button UpB;
-        private System.Windows.Forms.Button DownB;
-        private System.Windows.Forms.Button BottomB;
-        private System.Windows.Forms.Button OkB;
-        private System.Windows.Forms.Button CancelB;
+        private ListView fileLv;
+        private Button TopB;
+        private Button UpB;
+        private Button DownB;
+        private Button BottomB;
+        private Button OkB;
+        private Button CancelB;
     }
 }
