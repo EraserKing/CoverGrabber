@@ -35,12 +35,26 @@ namespace CoverGrabber.Site
             request.CookieContainer = CookieContainer;
         }
 
+        public AlbumInfo ParseAlbum(HtmlDocument pageDocument)
+        {
+            return new AlbumInfo
+            {
+                AlbumArtistName = ParseAlbumArtist(pageDocument),
+                AlbumTitle = ParseAlbumTitle(pageDocument),
+                AlbumYear = ParseAlbumYear(pageDocument),
+                ArtistNamesByDiscs = ParseTrackArtistList(pageDocument),
+                CoverImagePath = ParseCoverAddress(pageDocument),
+                TrackNamesByDiscs = ParseTrackList(pageDocument),
+                TrackUrlListByDiscs = ParseTrackUrlList(pageDocument)
+            };
+        }
+
         /// <summary>
         /// Parse album page and get cover image URL
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Cover image URL</returns>
-        public string ParseCoverAddress(HtmlDocument pageDocument)
+        private string ParseCoverAddress(HtmlDocument pageDocument)
         {
             HtmlNode coverAddressNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"cover-art\"]/img");
             return coverAddressNode != null ? coverAddressNode.GetAttributeValue("src", string.Empty) : string.Empty;
@@ -51,7 +65,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
-        public List<List<string>> ParseTrackList(HtmlDocument pageDocument)
+        private List<List<string>> ParseTrackList(HtmlDocument pageDocument)
         {
             JObject jsonRoot = GetJsonContent(pageDocument);
             JArray discNodes = (JArray)jsonRoot["mediums"];
@@ -75,7 +89,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        public List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument)
+        private List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument)
         {
             JObject jsonRoot = GetJsonContent(pageDocument);
             JArray discNodes = (JArray)jsonRoot["mediums"];
@@ -99,7 +113,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        public List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument)
+        private List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument)
         {
             JObject jsonRoot = GetJsonContent(pageDocument);
             JArray discNodes = (JArray)jsonRoot["mediums"];
@@ -134,7 +148,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Album title</returns>
-        public string ParseAlbumTitle(HtmlDocument pageDocument)
+        private string ParseAlbumTitle(HtmlDocument pageDocument)
         {
             HtmlNode titleNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"releaseheader\"]/h1/a/bdi");
             return titleNode?.InnerText ?? string.Empty;
@@ -145,7 +159,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Album artist</returns>
-        public string ParseAlbumArtist(HtmlDocument pageDocument)
+        private string ParseAlbumArtist(HtmlDocument pageDocument)
         {
             HtmlNode artistNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"releaseheader\"]/p/a/bdi");
             return artistNode != null ? HttpUtility.HtmlDecode(artistNode.InnerText) : string.Empty;
@@ -156,7 +170,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Album year</returns>
-        public uint ParseAlbumYear(HtmlDocument pageDocument)
+        private uint ParseAlbumYear(HtmlDocument pageDocument)
         {
             HtmlNode yearNode = pageDocument.DocumentNode.SelectSingleNode("//span[@class=\"release-date\"][1]");
             return yearNode != null ? uint.Parse(HttpUtility.HtmlDecode(yearNode.InnerText).Substring(0, 4)) : 0;

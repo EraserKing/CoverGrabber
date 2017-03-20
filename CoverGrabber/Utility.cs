@@ -248,26 +248,6 @@ namespace CoverGrabber
         }
 
         /// <summary>
-        /// Parse ID3 info from the album page
-        /// </summary>
-        /// <param name="site">The site implementing ISite</param>
-        /// <param name="albumPage">The album page</param>
-        /// <returns>The album info</returns>
-        public static AlbumInfo ParseId3(ISite site, HtmlDocument albumPage)
-        {
-            AlbumInfo albumInfo = new AlbumInfo
-            {
-                TrackNamesByDiscs = site.ParseTrackList(albumPage),
-                TrackUrlListByDiscs = site.ParseTrackUrlList(albumPage),
-                ArtistNamesByDiscs = site.ParseTrackArtistList(albumPage),
-                AlbumTitle = site.ParseAlbumTitle(albumPage),
-                AlbumArtistName = site.ParseAlbumArtist(albumPage),
-                AlbumYear = site.ParseAlbumYear(albumPage)
-            };
-            return albumInfo;
-        }
-
-        /// <summary>
         /// Download lyrics 
         /// </summary>
         /// <param name="albumInfo">The album info</param>

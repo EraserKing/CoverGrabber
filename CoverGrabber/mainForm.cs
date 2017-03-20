@@ -219,8 +219,16 @@ namespace CoverGrabber
                 SetProgress(10, "Getting remote page information...", EnumProgressReportObject.Skip, string.Empty);
                 HtmlDocument albumPage = Utility.DownloadPage(options.SiteInterface.ConvertAlbumUrl(options.WebPageUrl), options.SiteInterface);
 
-                SetProgress(20, "Getting tracks list...", EnumProgressReportObject.Skip, string.Empty);
-                AlbumInfo albumInfo = Utility.ParseId3(options.SiteInterface, albumPage);
+                SetProgress(20, "Getting album info...", EnumProgressReportObject.Skip, string.Empty);
+                AlbumInfo albumInfo = options.SiteInterface.ParseAlbum(albumPage);
+
+                SetProgress(30, "Getting tracks info...", new Dictionary<EnumProgressReportObject, string>
+                    {
+                        {EnumProgressReportObject.TextClear, string.Empty},
+                        {EnumProgressReportObject.Text, string.Join(Environment.NewLine, albumInfo.TrackNamesByDiscs.Select(x => string.Join(Environment.NewLine, x)))},
+                        {EnumProgressReportObject.AlbumTitle, albumInfo.AlbumTitle},
+                        {EnumProgressReportObject.AlbumArtist, albumInfo.AlbumArtistName}
+                    });
 
                 if (fileList.Count != albumInfo.TrackNamesByDiscs.Sum(x => x.Count))
                 {
@@ -233,21 +241,10 @@ namespace CoverGrabber
                     throw new FileMatchException();
                 }
 
-                if (options.NeedId3)
-                {
-                    SetProgress(30, "Getting ID3 information...", new Dictionary<EnumProgressReportObject, string>
-                    {
-                        {EnumProgressReportObject.TextClear, string.Empty},
-                        {EnumProgressReportObject.Text, string.Join(Environment.NewLine, albumInfo.TrackNamesByDiscs.Select(x => string.Join(Environment.NewLine, x)))},
-                        {EnumProgressReportObject.AlbumTitle, albumInfo.AlbumTitle},
-                        {EnumProgressReportObject.AlbumArtist, albumInfo.AlbumArtistName}
-                    });
-                }
-
                 SetProgress(40, "Getting cover image...", EnumProgressReportObject.Skip, string.Empty);
                 if (options.NeedCover)
                 {
-                    albumInfo.CoverImagePath = Utility.GenerateCover(options.SiteInterface.ParseCoverAddress(albumPage), options.ResizeSize);
+                    albumInfo.CoverImagePath = Utility.GenerateCover(albumInfo.CoverImagePath, options.ResizeSize);
                     SetProgress(-1, null, EnumProgressReportObject.AlbumCover, albumInfo.CoverImagePath);
                 }
 

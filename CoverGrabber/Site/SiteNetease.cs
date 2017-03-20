@@ -37,12 +37,26 @@ namespace CoverGrabber.Site
             request.CookieContainer = CookieContainer;
         }
 
+        public AlbumInfo ParseAlbum(HtmlDocument pageDocument)
+        {
+            return new AlbumInfo
+            {
+                AlbumArtistName = ParseAlbumArtist(pageDocument),
+                AlbumTitle = ParseAlbumTitle(pageDocument),
+                AlbumYear = ParseAlbumYear(pageDocument),
+                ArtistNamesByDiscs = ParseTrackArtistList(pageDocument),
+                CoverImagePath = ParseCoverAddress(pageDocument),
+                TrackNamesByDiscs = ParseTrackList(pageDocument),
+                TrackUrlListByDiscs = ParseTrackUrlList(pageDocument)
+            };
+        }
+
         /// <summary>
         /// Parse album page and get cover image URL
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Cover image URL</returns>
-        public string ParseCoverAddress(HtmlDocument pageDocument)
+        private string ParseCoverAddress(HtmlDocument pageDocument)
         {
             HtmlNode coverAddressNode = pageDocument.DocumentNode.SelectSingleNode("//img[@class=\"j-img\"]");
             return coverAddressNode?.GetAttributeValue("data-src", string.Empty) ?? string.Empty;
@@ -53,7 +67,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks list per disc</returns>
-        public List<List<string>> ParseTrackList(HtmlDocument pageDocument)
+        private List<List<string>> ParseTrackList(HtmlDocument pageDocument)
         {
             JArray trackNodes = JArray.Parse(HttpUtility.HtmlDecode(pageDocument.DocumentNode.SelectNodes("//div[@id=\"song-list-pre-cache\"]/textarea")[0].InnerText));
 
@@ -67,7 +81,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        public List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument)
+        private List<List<string>> ParseTrackUrlList(HtmlDocument pageDocument)
         {
             JArray trackNodes = JArray.Parse(HttpUtility.HtmlDecode(pageDocument.DocumentNode.SelectNodes("//div[@id=\"song-list-pre-cache\"]/textarea")[0].InnerText));
 
@@ -83,7 +97,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Two level ArrayList, discs list - tracks URLs list per disc</returns>
-        public List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument)
+        private List<List<string>> ParseTrackArtistList(HtmlDocument pageDocument)
         {
             JArray trackNodes = JArray.Parse(HttpUtility.HtmlDecode(pageDocument.DocumentNode.SelectNodes("//div[@id=\"song-list-pre-cache\"]/textarea")[0].InnerText));
             List<string> trackList = trackNodes.Select(x => JObject.Parse(x["artists"][0].ToString())["name"].Value<string>()).ToList();
@@ -110,7 +124,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Album title</returns>
-        public string ParseAlbumTitle(HtmlDocument pageDocument)
+        private string ParseAlbumTitle(HtmlDocument pageDocument)
         {
             HtmlNode titleNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/div/div/h2");
             return titleNode != null ? HttpUtility.HtmlDecode(titleNode.InnerText) : "";
@@ -121,7 +135,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Album artist</returns>
-        public string ParseAlbumArtist(HtmlDocument pageDocument)
+        private string ParseAlbumArtist(HtmlDocument pageDocument)
         {
             HtmlNode artistNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/p[1]/span/a");
             return artistNode != null ? HttpUtility.HtmlDecode(artistNode.InnerText) : "";
@@ -132,7 +146,7 @@ namespace CoverGrabber.Site
         /// </summary>
         /// <param name="pageDocument">Page as document</param>
         /// <returns>Album year</returns>
-        public uint ParseAlbumYear(HtmlDocument pageDocument)
+        private uint ParseAlbumYear(HtmlDocument pageDocument)
         {
             HtmlNode yearNode = pageDocument.DocumentNode.SelectSingleNode("//div[@class=\"topblk\"]/p[2]");
             if (yearNode != null)
