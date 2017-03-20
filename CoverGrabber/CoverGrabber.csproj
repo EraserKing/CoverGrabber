@@ -98,11 +98,11 @@
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
     <Compile Include="ISite.cs" />
-    <Compile Include="mainForm.cs">
+    <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="mainForm.Designer.cs">
-      <DependentUpon>mainForm.cs</DependentUpon>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -113,15 +113,21 @@
     <Compile Include="Site\SiteNetease.cs" />
     <Compile Include="Site\SiteMusicBrainz.cs" />
     <Compile Include="Site\SiteXiami.cs" />
-    <Compile Include="sortForm.cs">
+    <Compile Include="SortForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="sortForm.Designer.cs">
-      <DependentUpon>sortForm.cs</DependentUpon>
+    <Compile Include="SortForm.Designer.cs">
+      <DependentUpon>SortForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SortResultForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SortResultForm.Designer.cs">
+      <DependentUpon>SortResultForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Utility.cs" />
-    <EmbeddedResource Include="mainForm.resx">
-      <DependentUpon>mainForm.cs</DependentUpon>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -133,8 +139,11 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="sortForm.resx">
-      <DependentUpon>sortForm.cs</DependentUpon>
+    <EmbeddedResource Include="SortForm.resx">
+      <DependentUpon>SortForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SortResultForm.resx">
+      <DependentUpon>SortResultForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="CoverGrabber_TemporaryKey.pfx" />
     <None Include="packages.config" />

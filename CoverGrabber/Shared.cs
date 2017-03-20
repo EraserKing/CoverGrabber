@@ -34,6 +34,9 @@ namespace CoverGrabber
         public string CoverImagePath;
         public List<List<string>> LyricsByDiscs;
 
+        public bool NeedCover = false;
+        public bool NeedLyric = false;
+
         public Id3 this[int i, int j] => new Id3
         {
             AlbumTitle = AlbumTitle,
@@ -45,8 +48,8 @@ namespace CoverGrabber
             TrackCount = (uint)TrackNamesByDiscs[i].Count,
             Performers = (string.IsNullOrEmpty(ArtistNamesByDiscs[i][j]) ? AlbumArtistName : ArtistNamesByDiscs[i][j]).Split(';'),
             Year = AlbumYear,
-            CoverImageList = new List<Picture> { new Picture(CoverImagePath) },
-            Lyrics = LyricsByDiscs?[i][j] ?? string.Empty
+            CoverImageList = NeedCover ? new List<Picture> { new Picture(CoverImagePath) } : null,
+            Lyrics = NeedLyric ? LyricsByDiscs?[i][j] ?? string.Empty : null
         };
     }
 

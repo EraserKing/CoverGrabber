@@ -27,13 +27,6 @@ namespace CoverGrabber
 
     static class Utility
     {
-        /*
-        /// <summary>
-        /// The cookies which assists verify code (otherwise verify code / 403 handler doesn't work)
-        /// </summary>
-        static public readonly CookieContainer Cookies = new CookieContainer();
-        */
-
         /// <summary>
         /// Download a page (UTF-8) and return the page content
         /// </summary>
@@ -153,8 +146,8 @@ namespace CoverGrabber
         {
             try
             {
-                string originalImagePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(remoteCoverUrl) + ".jpg");
-                string resizedImagePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(remoteCoverUrl) + "_resized.jpg");
+                string originalImagePath = Path.Combine(Path.GetTempPath(), Path.GetFileNameWithoutExtension(remoteCoverUrl) + ".jpg");
+                string resizedImagePath = Path.Combine(Path.GetTempPath(), Path.GetFileNameWithoutExtension(remoteCoverUrl) + "_resized.jpg");
                 if (File.Exists(originalImagePath))
                 {
                     File.Delete(originalImagePath);
@@ -340,26 +333,22 @@ namespace CoverGrabber
             Dictionary<string, Tuple<int, int>> localToRemoteMap;
 
             var sortedFileList = AutoSortFile(fileList, trackNamesByDiscs, out mismatchedFiles, out localToRemoteMap);
-            string promptMessage = $"The auto sort result is:{Environment.NewLine}";
-            promptMessage += string.Join(Environment.NewLine, localToRemoteMap.Keys.OrderBy(x => x).Select(x => string.Concat(x, "=>", trackNamesByDiscs[localToRemoteMap[x].Item1][localToRemoteMap[x].Item2])));
-
             if (mismatchedFiles.Count == 0)
             {
-                promptMessage += $"{Environment.NewLine}To accept this, press Yes. To continue to the naturally sort, press No. To cancel, press Cancel.";
-                DialogResult dr = MessageBox.Show(promptMessage, "Auto sort result", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
-                if (dr == DialogResult.Yes)
+                SortResultForm sortResultForm = new SortResultForm(fileList, trackNamesByDiscs, localToRemoteMap);
+                sortResultForm.ShowDialog();
+                if (sortResultForm.Accepted)
                 {
                     fileList = sortedFileList;
-
                 }
-                else if (dr == DialogResult.Cancel)
+                else
                 {
                     return false;
                 }
             }
             else
             {
-                promptMessage += $"{Environment.NewLine}These files do not have matched tracks:{Environment.NewLine}";
+                string promptMessage = $"{Environment.NewLine}These files do not have matched tracks:{Environment.NewLine}";
                 promptMessage += string.Join(Environment.NewLine, mismatchedFiles);
                 promptMessage += $"{Environment.NewLine}You cannot continue in Auto mode, but you can sort them manually.";
                 MessageBox.Show(promptMessage, "Auto sort result", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -396,9 +385,9 @@ namespace CoverGrabber
             if (supportedSites.ContainsKey(host))
             {
                 options.SiteInterface = supportedSites[host];
-                options.NeedCover = supportedSites[host].SupportCover;
-                options.NeedLyric = supportedSites[host].SupportLyric;
-                options.NeedId3 = supportedSites[host].SupportId3;
+                options.NeedCover &= supportedSites[host].SupportCover;
+                options.NeedLyric &= supportedSites[host].SupportLyric;
+                options.NeedId3 &= supportedSites[host].SupportId3;
                 return;
             }
             throw new NotImplementedException($"Host {host} is not supported.");

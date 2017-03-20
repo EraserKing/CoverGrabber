@@ -6,16 +6,16 @@ using System.Windows.Forms;
 
 namespace CoverGrabber
 {
-    public partial class sortForm : Form
+    public partial class SortForm : Form
     {
         public List<string> Files;
 
-        public sortForm()
+        public SortForm()
         {
             InitializeComponent();
         }
 
-        public sortForm(List<string> fileList)
+        public SortForm(List<string> fileList)
         {
             InitializeComponent();
             fileLv.Clear();

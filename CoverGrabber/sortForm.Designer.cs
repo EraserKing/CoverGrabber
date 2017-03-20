@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace CoverGrabber
 {
-    partial class sortForm
+    partial class SortForm
     {
         /// <summary>
         /// Required designer variable.

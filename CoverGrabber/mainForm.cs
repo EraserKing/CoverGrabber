@@ -9,12 +9,12 @@ using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace CoverGrabber
 {
-    public partial class mainForm : Form
+    public partial class MainForm : Form
     {
         List<string> _sortedFileList = new List<string>();
         Dictionary<string, ISite> _supportedSites = new Dictionary<string, ISite>();
 
-        public mainForm()
+        public MainForm()
         {
             InitializeComponent();
 
@@ -244,12 +244,14 @@ namespace CoverGrabber
                 SetProgress(40, "Getting cover image...", EnumProgressReportObject.Skip, string.Empty);
                 if (options.NeedCover)
                 {
+                    albumInfo.NeedCover = true;
                     albumInfo.CoverImagePath = Utility.GenerateCover(albumInfo.CoverImagePath, options.ResizeSize);
                     SetProgress(-1, null, EnumProgressReportObject.AlbumCover, albumInfo.CoverImagePath);
                 }
 
                 if (options.NeedLyric)
                 {
+                    albumInfo.NeedLyric = true;
                     Utility.DownloadLyrics(ref albumInfo, options.SiteInterface, SetProgress);
                 }
 
@@ -356,7 +358,7 @@ namespace CoverGrabber
                 MessageBox.Show($"Folder {e1.Message} doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            sortForm sf = new sortForm(_sortedFileList);
+            SortForm sf = new SortForm(_sortedFileList);
             sf.ShowDialog();
             _sortedFileList = sf.Files;
         }

@@ -49,7 +49,10 @@ namespace CoverGrabber.Site
 
             for (int pageNumber = 1; ; pageNumber++)
             {
+                // Seems there's a hidden API we can directly call instead of analyzing the page
                 JObject page = JObject.Parse(Utility.DownloadPage($"http://www.xiami.com/album/songs/id/{albumId}/page/{pageNumber}", this).DocumentNode.InnerHtml);
+                // For the page after the last page, data node is null
+                // We must break here otherwise it leads to a crash (unexpected page)
                 if (!page["data"].HasValues)
                 {
                     break;
@@ -61,7 +64,7 @@ namespace CoverGrabber.Site
                     albumInfo.AlbumTitle = firstNode["title"].Value<string>();
                     albumInfo.AlbumArtistName = firstNode["artist_name"].Value<string>();
                     albumInfo.AlbumYear = ParseAlbumYear(pageDocument);
-                    albumInfo.CoverImagePath = "http://pic.xiami.com/" + firstNode["album_logo"].Value<string>().Replace("_1.jpg", "");
+                    albumInfo.CoverImagePath = "http://pic.xiami.net/" + firstNode["album_logo"].Value<string>().Replace("_1.jpg", ".jpg");
                 }
 
                 foreach (JObject songNode in page["data"])
@@ -79,6 +82,7 @@ namespace CoverGrabber.Site
 
                     albumInfo.ArtistNamesByDiscs[currentDisc - 1].Add(albumInfo.AlbumArtistName == songNode["singers"]?.Value<string>() ? null : songNode["singer"].Value<string>());
                     albumInfo.TrackNamesByDiscs[currentDisc - 1].Add(songNode["songName"].Value<string>());
+                    // TODO: If we have lyric node, add the page; otherwise skip to prevent blocked
                     albumInfo.TrackUrlListByDiscs[currentDisc - 1].Add(songUrl);
                 }
             }
