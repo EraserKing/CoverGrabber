@@ -16,8 +16,6 @@ namespace CoverGrabber.Site
             "music.163.com"
         };
 
-        public string ConvertAlbumUrl(string originalUrl) => originalUrl.Replace("/#/", "/");
-
         public bool SupportId3 { get; } = true;
         public bool SupportCover { get; } = true;
         public bool SupportLyric { get; } = true;
@@ -37,8 +35,9 @@ namespace CoverGrabber.Site
             request.CookieContainer = CookieContainer;
         }
 
-        public AlbumInfo ParseAlbum(HtmlDocument pageDocument)
+        public AlbumInfo ParseAlbum(string albumUrl)
         {
+            HtmlDocument pageDocument = Utility.DownloadPage(albumUrl, this);
             return new AlbumInfo
             {
                 AlbumArtistName = ParseAlbumArtist(pageDocument),
@@ -108,10 +107,15 @@ namespace CoverGrabber.Site
         /// <summary>
         /// Parse track page and return lyric
         /// </summary>
-        /// <param name="pageDocument">Page as document</param>
+        /// <param name="trackUrl">Track URL</param>
         /// <returns>Lyric</returns>
-        public string ParseTrackLyric(HtmlDocument pageDocument)
+        public string ParseTrackLyric(string trackUrl)
         {
+            if (trackUrl == null)
+            {
+                return null;
+            }
+            HtmlDocument pageDocument = Utility.DownloadPage(trackUrl, this);
             // As I described in ParseTrackUrlList, here a JSON is passed in.
             JObject lyricObject = JObject.Parse(pageDocument.DocumentNode.InnerHtml);
 

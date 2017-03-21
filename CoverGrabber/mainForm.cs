@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CoverGrabber.Site;
-using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace CoverGrabber
 {
@@ -98,7 +97,7 @@ namespace CoverGrabber
 
             try
             {
-                Utility.InitializeEnvironment(ref options, _supportedSites);
+                SiteCommon.InitializeEnvironment(ref options, _supportedSites);
             }
             catch (NotImplementedException)
             {
@@ -173,11 +172,6 @@ namespace CoverGrabber
                         trackT.Clear();
                         break;
                     }
-                case (EnumProgressReportObject.VerifyCode):
-                    {
-                        verifyCodeP.ImageLocation = progressOptions.ObjectValue;
-                        break;
-                    }
             }
         }
 
@@ -200,6 +194,7 @@ namespace CoverGrabber
         private void DoGrab(object grabOptions)
         {
             GrabOptions options = (GrabOptions)grabOptions;
+            ISite site = options.SiteInterface;
             List<string> fileList = new List<string>();
             CleanProgress();
 
@@ -216,11 +211,8 @@ namespace CoverGrabber
                         fileList = options.FileList;
                         break;
                 }
-                SetProgress(10, "Getting remote page information...", EnumProgressReportObject.Skip, string.Empty);
-                HtmlDocument albumPage = Utility.DownloadPage(options.SiteInterface.ConvertAlbumUrl(options.WebPageUrl), options.SiteInterface);
-
-                SetProgress(20, "Getting album info...", EnumProgressReportObject.Skip, string.Empty);
-                AlbumInfo albumInfo = options.SiteInterface.ParseAlbum(albumPage);
+                SetProgress(10, "Getting album info...", EnumProgressReportObject.Skip, string.Empty);
+                AlbumInfo albumInfo = site.ParseAlbum(options.WebPageUrl);
 
                 SetProgress(30, "Getting tracks info...", new Dictionary<EnumProgressReportObject, string>
                     {
@@ -252,11 +244,11 @@ namespace CoverGrabber
                 if (options.NeedLyric)
                 {
                     albumInfo.NeedLyric = true;
-                    Utility.DownloadLyrics(ref albumInfo, options.SiteInterface, SetProgress);
+                    SiteCommon.DownloadLyrics(ref albumInfo, site, SetProgress);
                 }
 
                 SetProgress(90, "Writing local files...", EnumProgressReportObject.Skip, string.Empty);
-                Utility.WriteFiles(albumInfo, fileList, options, SetProgress);
+                SiteCommon.WriteFiles(albumInfo, fileList, options, SetProgress);
 
                 SetProgress(100, "Done", EnumProgressReportObject.Skip, string.Empty);
                 MessageBox.Show("Done.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);

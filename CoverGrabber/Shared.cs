@@ -82,7 +82,6 @@ namespace CoverGrabber
         AlbumCover,
         Text,
         TextClear,
-        VerifyCode,
         Skip
     }
 

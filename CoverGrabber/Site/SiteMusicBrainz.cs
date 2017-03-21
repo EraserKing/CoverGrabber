@@ -14,8 +14,6 @@ namespace CoverGrabber.Site
             "musicbrainz.org"
         };
 
-        public string ConvertAlbumUrl(string originalUrl) => originalUrl;
-
         public bool SupportId3 { get; } = true;
         public bool SupportCover { get; } = true;
         public bool SupportLyric { get; } = false;
@@ -35,8 +33,9 @@ namespace CoverGrabber.Site
             request.CookieContainer = CookieContainer;
         }
 
-        public AlbumInfo ParseAlbum(HtmlDocument pageDocument)
+        public AlbumInfo ParseAlbum(string albumUrl)
         {
+            HtmlDocument pageDocument = Utility.DownloadPage(albumUrl, this);
             return new AlbumInfo
             {
                 AlbumArtistName = ParseAlbumArtist(pageDocument),
@@ -136,9 +135,9 @@ namespace CoverGrabber.Site
         /// <summary>
         /// Parse track page and return lyric
         /// </summary>
-        /// <param name="pageDocument">Page as document</param>
+        /// <param name="trackUrl">Track URL</param>
         /// <returns>Lyric</returns>
-        public string ParseTrackLyric(HtmlDocument pageDocument)
+        public string ParseTrackLyric(string trackUrl)
         {
             return string.Empty;
         }

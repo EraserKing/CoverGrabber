@@ -8,9 +8,8 @@ namespace CoverGrabber
     {
         void InitializeRequest(ref HttpWebRequest request, string url);
 
-        AlbumInfo ParseAlbum(HtmlDocument pageDocument);
-        string ParseTrackLyric(HtmlDocument pageDocument);
-        string ConvertAlbumUrl(string originalUrl);
+        AlbumInfo ParseAlbum(string albumPageUrl);
+        string ParseTrackLyric(string trackUrl);
 
         List<string> SupportedHost { get; }
         bool SupportId3 { get; }
