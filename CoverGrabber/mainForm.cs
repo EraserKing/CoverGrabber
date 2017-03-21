@@ -211,6 +211,11 @@ namespace CoverGrabber
                         fileList = options.FileList;
                         break;
                 }
+                if (fileList.Count == 0)
+                {
+                    throw new FileMatchException(options.LocalFolder);
+                }
+
                 SetProgress(10, "Getting album info...", EnumProgressReportObject.Skip, string.Empty);
                 AlbumInfo albumInfo = site.ParseAlbum(options.WebPageUrl);
 
@@ -230,7 +235,7 @@ namespace CoverGrabber
                 // Notice fileList after this step is already sorted.
                 if (options.SortMode == EnumSortMode.Auto && !Utility.TryToMatchFiles(ref fileList, albumInfo.TrackNamesByDiscs))
                 {
-                    throw new FileMatchException();
+                    throw new FileMatchException(options.LocalFolder);
                 }
 
                 SetProgress(40, "Getting cover image...", EnumProgressReportObject.Skip, string.Empty);
@@ -253,35 +258,9 @@ namespace CoverGrabber
                 SetProgress(100, "Done", EnumProgressReportObject.Skip, string.Empty);
                 MessageBox.Show("Done.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            catch (FileCountNotMatchException ex)
+            catch (Exception ex)
             {
-                MessageBox.Show($"You have {ex.LocalCount} tracks in local folder(s), but {ex.RemoteCount} tracks on album page.", "Error", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                CleanProgress();
-            }
-            catch (DirectoryNotFoundException)
-            {
-                MessageBox.Show($"Folder {options.LocalFolder} doesn't exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress();
-            }
-            catch (FileMatchException)
-            {
-                MessageBox.Show("Auto file match failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress();
-            }
-            catch (DownloadCoverException)
-            {
-                MessageBox.Show("Download cover image filed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress();
-            }
-            catch (WritingFileException ex)
-            {
-                MessageBox.Show($"Writing information for track {ex.TrackNumber} failed.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                CleanProgress();
-            }
-            catch (DownloadLyricException ex)
-            {
-                MessageBox.Show($"Downloading lyrics for track {ex.TrackNumber} failed.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CleanProgress();
             }
         }

@@ -158,7 +158,7 @@ namespace CoverGrabber
             }
             catch (Exception)
             {
-                throw new DownloadCoverException();
+                throw new DownloadCoverException(remoteCoverUrl);
             }
         }
 
@@ -240,6 +240,8 @@ namespace CoverGrabber
                     }
                 }
             }
+            // It's sorted in the reverse way, so reverse it again
+            sortResult.Reverse();
             return sortResult;
         }
 
@@ -290,8 +292,15 @@ namespace CoverGrabber
 
             foreach (string folderPath in folders.Split(';'))
             {
-                fileList.AddRange(new DirectoryInfo(folderPath).GetFiles("*.m4a").Select(y => y.FullName));
-                fileList.AddRange(new DirectoryInfo(folderPath).GetFiles("*.mp3").Select(y => y.FullName));
+                try
+                {
+                    fileList.AddRange(new DirectoryInfo(folderPath.Trim('"')).GetFiles("*.m4a").Select(y => y.FullName));
+                    fileList.AddRange(new DirectoryInfo(folderPath.Trim('"')).GetFiles("*.mp3").Select(y => y.FullName));
+                }
+                catch (Exception)
+                {
+                    throw new FileMatchException(folders);
+                }
             }
             return fileList;
         }

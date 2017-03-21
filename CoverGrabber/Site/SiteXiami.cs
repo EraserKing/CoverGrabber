@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Web;
+using System.Windows.Forms;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace CoverGrabber.Site
 {
@@ -35,6 +38,10 @@ namespace CoverGrabber.Site
 
         public AlbumInfo ParseAlbum(string albumUrl)
         {
+            if (!albumUrl.StartsWith("http://www.xiami.com/album/"))
+            {
+                throw new NotImplementedException();
+            }
             string albumId = albumUrl.Replace("http://www.xiami.com/album/", "");
             albumId = albumId.Substring(0, albumId.IndexOf('?'));
 
@@ -49,8 +56,17 @@ namespace CoverGrabber.Site
 
             for (int pageNumber = 1; ; pageNumber++)
             {
+                JObject page;
+                try
+                {
+                    page = JObject.Parse(Utility.DownloadPage($"http://www.xiami.com/album/songs/id/{albumId}/page/{pageNumber}", this).DocumentNode.InnerHtml);
+                }
+                catch (Exception)
+                {
+                    throw new DownloadPageException($"http://www.xiami.com/album/songs/id/{albumId}/page/{pageNumber}");
+                }
                 // Seems there's a hidden API we can directly call instead of analyzing the page
-                JObject page = JObject.Parse(Utility.DownloadPage($"http://www.xiami.com/album/songs/id/{albumId}/page/{pageNumber}", this).DocumentNode.InnerHtml);
+
                 // For the page after the last page, data node is null
                 // We must break here otherwise it leads to a crash (unexpected page)
                 if (!page["data"].HasValues)
@@ -61,27 +77,48 @@ namespace CoverGrabber.Site
                 if (pageNumber == 1)
                 {
                     JToken firstNode = page["data"].First();
-                    albumInfo.AlbumTitle = firstNode["title"].Value<string>();
-                    albumInfo.AlbumArtistName = firstNode["artist_name"].Value<string>();
-                    albumInfo.AlbumYear = (uint)Utility.ConvertUnixTimeStampToDateTime(firstNode["demoCreateTime"].Value<long>(), true).Year;
-                    albumInfo.CoverImagePath = $"http://pic.xiami.net/{firstNode["album_logo"].Value<string>().Replace("_1.jpg", ".jpg")}";
+                    try
+                    {
+                        albumInfo.AlbumTitle = firstNode["title"].Value<string>();
+                        albumInfo.AlbumArtistName = firstNode["artist_name"].Value<string>();
+                        albumInfo.AlbumYear = (uint)Utility.ConvertUnixTimeStampToDateTime(firstNode["demoCreateTime"].Value<long>(), true).Year;
+                        albumInfo.CoverImagePath = $"http://pic.xiami.net/{firstNode["album_logo"].Value<string>().Replace("_1.jpg", ".jpg")}";
+                    }
+                    catch (Exception)
+                    {
+                        throw new ParsePageException("first track", "at least one property was not found");
+                    }
                 }
 
                 foreach (var songNode in page["data"])
                 {
-                    int disc = songNode["cdSerial"].Value<int>();
-                    if (currentDisc != disc)
+                    try
                     {
-                        albumInfo.ArtistNamesByDiscs.Add(new List<string>());
-                        albumInfo.LyricsByDiscs.Add(new List<string>());
-                        albumInfo.TrackNamesByDiscs.Add(new List<string>());
-                        albumInfo.TrackUrlListByDiscs.Add(new List<string>());
-                        currentDisc = disc;
+                        int disc = songNode["cdSerial"].Value<int>();
+                        if (currentDisc != disc)
+                        {
+                            albumInfo.ArtistNamesByDiscs.Add(new List<string>());
+                            albumInfo.LyricsByDiscs.Add(new List<string>());
+                            albumInfo.TrackNamesByDiscs.Add(new List<string>());
+                            albumInfo.TrackUrlListByDiscs.Add(new List<string>());
+                            currentDisc = disc;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        throw new ParsePageException("disc number", "cannot find disc number from track info");
                     }
 
-                    albumInfo.ArtistNamesByDiscs[currentDisc - 1].Add(albumInfo.AlbumArtistName == songNode["singers"]?.Value<string>() ? null : songNode["singer"].Value<string>());
-                    albumInfo.TrackNamesByDiscs[currentDisc - 1].Add(songNode["songName"].Value<string>());
-                    albumInfo.TrackUrlListByDiscs[currentDisc - 1].Add(songNode["lyricInfo"].HasValues ? $"http://www.xiami.com/song/{songNode["songId"].Value<string>()}" : null);
+                    try
+                    {
+                        albumInfo.ArtistNamesByDiscs[currentDisc - 1].Add(albumInfo.AlbumArtistName == songNode["singers"]?.Value<string>() ? null : songNode["singers"].Value<string>());
+                        albumInfo.TrackNamesByDiscs[currentDisc - 1].Add(songNode["songName"].Value<string>());
+                        albumInfo.TrackUrlListByDiscs[currentDisc - 1].Add(songNode["lyricInfo"].HasValues ? $"http://www.xiami.com/song/{songNode["songId"].Value<string>()}" : null);
+                    }
+                    catch (Exception)
+                    {
+                        throw new ParsePageException($"song {songNode["id"].ToObject<string>()}", "cannot parse track info");
+                    }
                 }
             }
             return albumInfo;

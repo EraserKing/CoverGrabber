@@ -17,16 +17,23 @@ namespace CoverGrabber
         /// <param name="supportedSites">The list of available sites to check</param>
         public static void InitializeEnvironment(ref GrabOptions options, Dictionary<string, ISite> supportedSites)
         {
-            string host = new Uri(options.WebPageUrl).Host;
-            if (supportedSites.ContainsKey(host))
+            try
             {
-                options.SiteInterface = supportedSites[host];
-                options.NeedCover &= supportedSites[host].SupportCover;
-                options.NeedLyric &= supportedSites[host].SupportLyric;
-                options.NeedId3 &= supportedSites[host].SupportId3;
-                return;
+                string host = new Uri(options.WebPageUrl).Host;
+                if (supportedSites.ContainsKey(host))
+                {
+                    options.SiteInterface = supportedSites[host];
+                    options.NeedCover &= supportedSites[host].SupportCover;
+                    options.NeedLyric &= supportedSites[host].SupportLyric;
+                    options.NeedId3 &= supportedSites[host].SupportId3;
+                    return;
+                }
+                throw new NotImplementedException($"Host {host} is not supported.");
             }
-            throw new NotImplementedException($"Host {host} is not supported.");
+            catch (UriFormatException)
+            {
+                throw new NotImplementedException($"Invalid URL");
+            }
         }
 
 
@@ -53,13 +60,18 @@ namespace CoverGrabber
                         setProgress(50 + (int)(40.0 * currentTrackNumber / remoteTrackQuantity), $"Downloading track {currentTrackNumber}...",
                             EnumProgressReportObject.Skip, "");
 
-                        string lyric = site.ParseTrackLyric(trackUrlListByDiscs[i][j]);
-                        if (!string.IsNullOrWhiteSpace(lyric))
+                        string trackUrl = trackUrlListByDiscs[i][j];
+                        string lyric = null;
+                        if (!string.IsNullOrEmpty(trackUrl))
                         {
-                            setProgress(-1, null, EnumProgressReportObject.Text,
-                                $"{Environment.NewLine}First line of lyric for track {currentTrackNumber}:{Environment.NewLine}{lyric.Split('\n')[0]}");
+                            lyric = site.ParseTrackLyric(trackUrl);
+                            if (!string.IsNullOrWhiteSpace(lyric))
+                            {
+                                setProgress(-1, null, EnumProgressReportObject.Text,
+                                    $"{Environment.NewLine}First line of lyric for track {currentTrackNumber}:{Environment.NewLine}{lyric.Split('\n')[0]}");
+                            }
+                            Thread.Sleep(500);
                         }
-                        Thread.Sleep(500);
                         lyricInDisc.Add(lyric);
                         currentTrackNumber++;
                     }
