@@ -51,7 +51,6 @@ namespace CoverGrabber
             this.tssL = new System.Windows.Forms.ToolStripStatusLabel();
             this.tssDummy = new System.Windows.Forms.ToolStripStatusLabel();
             this.tssP = new System.Windows.Forms.ToolStripProgressBar();
-            this.verifyCodeP = new System.Windows.Forms.PictureBox();
             this.bw = new System.ComponentModel.BackgroundWorker();
             this.gbSort = new System.Windows.Forms.GroupBox();
             this.sortB = new System.Windows.Forms.Button();
@@ -61,7 +60,6 @@ namespace CoverGrabber
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.resizeSize)).BeginInit();
             this.sts.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.verifyCodeP)).BeginInit();
             this.gbSort.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -256,7 +254,7 @@ namespace CoverGrabber
             // tssDummy
             // 
             this.tssDummy.Name = "tssDummy";
-            this.tssDummy.Size = new System.Drawing.Size(336, 18);
+            this.tssDummy.Size = new System.Drawing.Size(367, 18);
             this.tssDummy.Spring = true;
             // 
             // tssP
@@ -264,15 +262,6 @@ namespace CoverGrabber
             this.tssP.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.tssP.Name = "tssP";
             this.tssP.Size = new System.Drawing.Size(200, 17);
-            // 
-            // verifyCodeP
-            // 
-            this.verifyCodeP.Location = new System.Drawing.Point(475, 65);
-            this.verifyCodeP.Name = "verifyCodeP";
-            this.verifyCodeP.Size = new System.Drawing.Size(14, 10);
-            this.verifyCodeP.TabIndex = 19;
-            this.verifyCodeP.TabStop = false;
-            this.verifyCodeP.Visible = false;
             // 
             // bw
             // 
@@ -340,13 +329,12 @@ namespace CoverGrabber
             this.sNaturallyRs.UseVisualStyleBackColor = true;
             this.sNaturallyRs.CheckedChanged += new System.EventHandler(this.sNatuallyRs_CheckedChanged);
             // 
-            // mainForm
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(584, 361);
             this.Controls.Add(this.gbSort);
-            this.Controls.Add(this.verifyCodeP);
             this.Controls.Add(this.sts);
             this.Controls.Add(this.goB);
             this.Controls.Add(this.resizeSize);
@@ -364,14 +352,13 @@ namespace CoverGrabber
             this.Controls.Add(this.folder);
             this.Controls.Add(this.folderL);
             this.MinimumSize = new System.Drawing.Size(600, 400);
-            this.Name = "mainForm";
+            this.Name = "MainForm";
             this.Text = "Cover Grabber";
             this.Load += new System.EventHandler(this.mainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.coverP)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.resizeSize)).EndInit();
             this.sts.ResumeLayout(false);
             this.sts.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.verifyCodeP)).EndInit();
             this.gbSort.ResumeLayout(false);
             this.gbSort.PerformLayout();
             this.ResumeLayout(false);
@@ -400,7 +387,6 @@ namespace CoverGrabber
         private StatusStrip sts;
         private ToolStripProgressBar tssP;
         private ToolStripStatusLabel tssL;
-        private PictureBox verifyCodeP;
         private ToolStripStatusLabel tssDummy;
         private BackgroundWorker bw;
         private GroupBox gbSort;
